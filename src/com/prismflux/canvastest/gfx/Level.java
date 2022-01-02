@@ -1,45 +1,70 @@
 package com.prismflux.canvastest.gfx;
 
-import com.prismflux.canvastest.net.SocketConnection;
-import org.tiledreader.TiledReader;
-
-import static com.prismflux.canvastest.net.SocketConnection.getSocket;
+import com.google.gson.Gson;
+import com.prismflux.canvastest.Game;
+import com.prismflux.canvastest.json.JsonMap;
+import com.prismflux.canvastest.json.TiledLayer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.mapeditor.core.*;
+import org.mapeditor.io.MapReader;
+import org.mapeditor.io.TMXMapReader;
+import org.mapeditor.view.IsometricRenderer;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
+/**
+ * @deprecated
+ */
 public class Level implements Renderable, Animatable {
 
-    public final int width = 5;
-    public final int height = 6;
+    public int width = 17;
+    public int height = 6;
 
     private ArrayList<Entity> entities = new ArrayList<>();
 
-    public final String path;
+    public String path;
 
     public float xOffset = 0;
     public float yOffset = 0;
 
-    public final SpriteSheet sheet;
+    public SpriteSheet sheet = null;
+    IsometricRenderer renderer = null;
 
-    private final int[] map = {
-            0, 1, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0,
-            1, 1, 1, 1, 1
-    };
+    private JSONObject mapFile;
+    private int[] map;
+
+    /*private int[] map = {
+            0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    };*/
+
+    //TiledMap tmap = null;
 
     public Level(String path) {
-        this.path = path;
+        super();
+        //this.path = path;
+        setLevel(path);
 
-        //load tmx file here
+        //InputStream is = Level.class.getResourceAsStream(path);
+        //is.
+
         //set level width/height according to tmx file
         //load spritesheet here
-        this.sheet = new SpriteSheet("/cuterpg/Tiles.png");
+
+        //this.mapFile
 
         //addEntity(new Player(this, 3, 3));
 
@@ -52,22 +77,58 @@ public class Level implements Renderable, Animatable {
         //nothing to do, because tmx isnt implemented yet
     }
 
+    private void setLevel(String levelId) {
+        this.path = levelId;
+
+        //String s = loadLevelFromFiles(levelId);
+        //loadTMXFromFile(levelId);
+
+        //this.mapFile = new JSONObject(s, );
+
+        //Gson gson = new Gson();
+        //JsonMap j = gson.fromJson(s, JsonMap.class);
+        //com.prismflux.canvastest.json.TiledLayer tl = (TiledLayer) a.get(0);
+        //TiledLayer tl = j.layers[0];
+
+        //this.map = tl.data;
+        //this.width = tl.width;
+        //this.height = tl.height;
+
+        //this.sheet = new SpriteSheet("/cuterpg/Tiles.png");
+    }
+
+    /*private String loadLevelFromFiles(String path) {
+        InputStream is = Level.class.getResourceAsStream(path);
+        return new BufferedReader(new InputStreamReader(is)).lines().parallel().collect(Collectors.joining("\n"));
+    }*/
+
+    private void loadTMXFromFile(String path) {
+        Map map_ = null;
+        try {
+            map_ = new TMXMapReader().readMap(Level.class.getResourceAsStream(path));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
         int pixelsWidth = row;
         int pixelsHeight = pixels.length / pixelsWidth;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int index = XYtoIndex(x, y);
-                int[] sprite = sheet.getSpriteDebug(map[index]);
+                if ((x * sheet.spriteWidth + 32) < Game.GAME_WIDTH && (y * sheet.spriteHeight + 32) < Game.GAME_HEIGHT) {
+                    int index = XYtoIndex(x, y);
+                    int[] sprite = sheet.getSpriteDebug(map[index]);
 
                 /*if (getPlayerX() == x && getPlayerY() == y) {
                     for (int i = 0; i < sprite.length; i++) {
                         sprite[i] &= 0xffff00;
                     }
                 }*/
-
-                image.setRGB(x * sheet.spriteWidth + getXOffset(), y * sheet.spriteHeight + getYOffset(), sheet.spriteWidth, sheet.spriteHeight, sprite, 0, sheet.spriteHeight);
+                    //System.out.println((x * sheet.spriteWidth + getXOffset()) + ", " + (y * sheet.spriteHeight + getYOffset()));
+                    image.setRGB(x * sheet.spriteWidth + getXOffset(), (y * sheet.spriteHeight) + getYOffset(), sheet.spriteWidth, sheet.spriteHeight, sprite, 0, sheet.spriteHeight);
+                }
             }
         }
 
@@ -112,41 +173,6 @@ public class Level implements Renderable, Animatable {
     @Override
     public void draw(int[] pixels, BufferedImage image, int offset, int row) {
 
-        int pixelsWidth = row;
-        int pixelsHeight = pixels.length / pixelsWidth;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int index = XYtoIndex(x, y);
-                int[] sprite = sheet.getSprite(map[index]);
-
-                image.setRGB(x * sheet.spriteWidth + getXOffset(), y * sheet.spriteHeight + getYOffset(), sheet.spriteWidth, sheet.spriteHeight, sprite, 0, sheet.spriteHeight);
-
-                //final int fX = x;
-                //final int fY = y;
-                if (getPlayer() != null) {
-                    if (getPlayerX() == x && getPlayerY() == y) {
-                        for (int i = 0; i < sprite.length; i++) {
-
-                            image.setRGB(
-                                    x * sheet.spriteWidth,
-                                    y * sheet.spriteHeight,
-                                    sheet.spriteWidth,
-                                    sheet.spriteHeight,
-                                    getPlayer().getSprite(),
-                                    0,
-                                    32
-                            );
-                        }
-                    }
-                }
-
-              }
-        }
-
-        drawEntities(image);
-
-        image.flush();
     }
 
     private void drawEntities(BufferedImage image) {
@@ -208,5 +234,9 @@ public class Level implements Renderable, Animatable {
 
     public void update(double delta) {
 
+    }
+
+    private JSONArray getLayers() throws JSONException {
+        return mapFile.getJSONArray("layers");
     }
 }

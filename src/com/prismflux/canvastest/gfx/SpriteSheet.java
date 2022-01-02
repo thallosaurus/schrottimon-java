@@ -1,6 +1,10 @@
 package com.prismflux.canvastest.gfx;
 
+import org.mapeditor.core.TileSet;
+import org.mapeditor.io.TMXMapReader;
+
 import javax.imageio.ImageIO;
+import javax.xml.bind.JAXBException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
@@ -13,10 +17,12 @@ public class SpriteSheet {
     public int width;
     public int height;
 
-    public int spriteWidth = 32;
-    public int spriteHeight = 32;
+    public int spriteWidth = 16;
+    public int spriteHeight = 16;
 
     public int[] pixels;
+
+    private TileSet tileset;
 
     private static BufferedImage image = null;
 
@@ -29,23 +35,36 @@ public class SpriteSheet {
 
     public SpriteSheet(String path) {
 
-        try {
+        /*try {
             image = ImageIO.read(SpriteSheet.class.getResourceAsStream(path));
         } catch (IOException e) {
             e.printStackTrace();
+        }*/
+
+        TMXMapReader mr = null;
+        //TileSet ts = null;
+        try {
+            mr = new TMXMapReader();
+            tileset = mr.readTileset(SpriteSheet.class.getResourceAsStream(path));
+        } catch (JAXBException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        if (image == null) {
+        /*if (image == null) {
             return;
-        }
+        }*/
 
         this.path = path;
         this.width = image.getWidth();
         this.height = image.getHeight();
     }
 
-    public int[] getSprite(int index) {
-        int x = index % this.spriteWidth;
+    public BufferedImage getSprite(int index) {
+        return tileset.getTile(index).getImage();
+
+        /*int x = index % this.spriteWidth;
         int y = index / this.spriteHeight;
 
         if (image == null) {
@@ -63,7 +82,7 @@ public class SpriteSheet {
         subPicture.getRGB(0, 0, this.spriteWidth, this.spriteHeight, iArray,0 ,this.spriteHeight);
         subPicture.flush();
 
-        return iArray;
+        return iArray;*/
     }
 
     public int[] getSpriteDebug(int index) {

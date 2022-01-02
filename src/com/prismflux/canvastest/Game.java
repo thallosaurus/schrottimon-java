@@ -17,28 +17,34 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     static JFrame frame;
     public int tickCount = 0;
 
-    public static final int GAME_WIDTH = 480;
+    public static final int GAME_WIDTH = 960; //480;
     public static final int GAME_HEIGHT = GAME_WIDTH / 12 * 9;
-    public static final int SCALE = 2;
+    public static final int SCALE = 1;
     private static ArrayList<Renderable> renderQueue = new ArrayList<>();
 
     private BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);
     private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
     public static boolean debug = true;
+    private static Game g;
 
     //private Screen screen;
 
     public static void main(String[] args) {
 	// write your code here
-        new Game().startEntry();
+        g = new Game();
+        g.startEntry();
+    }
+
+    public static Game getGame() {
+        return g;
     }
 
     public void init() {
         //screen =
-        new SocketConnection(this);
+        //new SocketConnection(this);
         new InputHandler(this);
-        new Screen(GAME_WIDTH, GAME_HEIGHT, new Level("/levels/nonexistant.json"));
+        new Screen(GAME_WIDTH, GAME_HEIGHT /*new Level("/levels/unbenannt.tmx")*/);
         new Animation();
         addToQueue(this);
     }
@@ -114,7 +120,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
 
             if (System.currentTimeMillis() - lastTimer >= 1000) {
                 lastTimer += 1000;
-                System.out.println(ticks + " ticks, " + frames + " frames skipped");
+                //System.out.println(ticks + " ticks, " + frames + " frames skipped");
                 frames = 0;
                 ticks = 0;
             }

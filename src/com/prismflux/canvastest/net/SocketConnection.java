@@ -6,50 +6,50 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 import java.net.URI;
-import java.util.HashMap;
 
-public class SocketConnection implements Emitter.Listener {
+public class SocketConnection {
 
     private static Socket socket = null;
 
     private final String USERNAME = "user";
     private final String PASSWORD = "pw";
 
-    private Game g;
+    //private Game g;
 
     public static Socket getSocket() {
         return socket;
     }
 
-    public SocketConnection(Game g) {
-        this.g = g;
+    public SocketConnection() {
+        //this.g = g;
 
         IO.Options options = IO.Options.builder().build();
 
-        socket = IO.socket(URI.create("http://localhost:4000"), options);
-        socket.connect();
+        if (socket == null) {
+            socket = IO.socket(URI.create("http://localhost:9000"), options);
+            socket.connect();
 
-        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                System.out.println("Connected: " + socket.connected() + ", Socket ID: " + socket.id()); // true
+            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Connected: " + socket.connected() + ", Socket ID: " + socket.id()); // true
 
-                socket.emit("clientjoin", USERNAME, PASSWORD);
-            }
-        });
+                    //socket.emit("clientjoin", USERNAME, PASSWORD);
+                }
+            });
 
-        socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                System.out.println("Connected: " + socket.connected()); // false
-            }
-        });
+            socket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    System.out.println("Connected: " + socket.connected()); // false
+                }
+            });
+        }
 
-        socket.on("update", this);
+        //socket.on("loadlevel", this);
     }
 
-    @Override
-    public void call(Object... objects) {
-        System.out.println(objects[0]);
+    protected void registerSocketListener(String tag, Emitter.Listener listener) {
+        socket.on(tag, listener);
     }
 }

@@ -1,6 +1,8 @@
 package com.prismflux.canvastest.gfx;
 
 import com.prismflux.canvastest.InputHandler;
+import io.socket.client.Socket;
+import org.mapeditor.core.Map;
 
 import static com.prismflux.canvastest.net.SocketConnection.getSocket;
 
@@ -11,8 +13,9 @@ public class Player extends Entity implements KeyListener {
 
     public final boolean isPlayer = true;
 
-    public Player(Level level, int x, int y) {
-        super(getSocket(), level, "/entities/Character.png", x, y);
+    public Player(Socket socket, Map map, int x, int y) {
+        super(getSocket(), getSocket().id(), map, "/entities/Character.png", x, y);
+        System.out.println("I am the player!");
 
         InputHandler.keyListeners.add(this);
     }
@@ -49,4 +52,6 @@ public class Player extends Entity implements KeyListener {
     public void keyReleased(KeyEvent e) {
 
     }
+
+
 }

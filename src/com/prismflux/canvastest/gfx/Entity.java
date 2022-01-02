@@ -1,33 +1,47 @@
 package com.prismflux.canvastest.gfx;
 
+import com.prismflux.canvastest.net.SocketConnection;
 import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+import org.mapeditor.core.Map;
+import org.mapeditor.core.TileLayer;
+import org.tiledreader.TiledLayer;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 
 import static com.prismflux.canvastest.net.SocketConnection.getSocket;
 
-public class Entity implements Renderable {
+public class Entity extends SocketConnection implements Renderable, Emitter.Listener {
 
     private int entityX;
     private int entityY;
     public int width = 32;
     public int height = 32;
-    private Level level;
+    //private Level level;
     private String path;
+
+    private Map map;
 
     public final boolean isPlayer = false;
 
     BufferedImage image = null;
 
-    public Entity(Socket socket, Level level, String path, int x, int y) {
-        this.level = level;
+    public String socketId = null;
+
+    public Entity(Socket socket, String socketId, Map map, String path, int x, int y) {
+        //this.level = level;
+        this.registerSocketListener("playermove", this);
         this.path = path;
         entityX = x;
         entityY = y;
+        this.map = map;
+
+        this.socketId = socketId;
 
         try {
             image = ImageIO.read(Entity.class.getResourceAsStream(path));
@@ -58,28 +72,32 @@ public class Entity implements Renderable {
     }
 
     protected void moveUp() {
-        if (level.canWalkThere(this.entityX, this.entityY - 1)) {
-            getSocket().emit("moveUp");
-            entityY--;
+        System.out.println("move up");
+        if (this.canWalkThere(this.entityX, this.entityY - 1)) {
+            //entityY--;
+            getSocket().emit("moveTo", entityX, entityY - 1);
         }
     }
 
     protected void moveDown() {
-        if (level.canWalkThere(this.entityX, this.entityY + 1)) {
-            entityY++;
-            getSocket().emit("moveDown");
+        //System.out.println("walk down? " + this.canWalkThere(this.entityX, this.entityY + 1));
+        if (this.canWalkThere(this.entityX, this.entityY + 1)) {
+            //entityY++;
+            getSocket().emit("moveTo", entityX, entityY + 1);
         }
     }
 
     protected void moveLeft() {
-        if (level.canWalkThere(this.entityX - 1, this.entityY)) {
-            getSocket().emit("moveLeft");
+        if (this.canWalkThere(this.entityX - 1, this.entityY)) {
+            //entityX--;
+            getSocket().emit("moveTo", entityX - 1, entityY);
         }
     }
 
     protected void moveRight() {
-        if (level.canWalkThere(this.entityX + 1, this.entityY)) {
-            getSocket().emit("moveRight");
+        if (this.canWalkThere(this.entityX + 1, this.entityY)) {
+            //entityX++;
+            getSocket().emit("moveTo", entityX + 1, entityY);
         }
     }
 
@@ -89,6 +107,18 @@ public class Entity implements Renderable {
         g.setColor(new Color(127, 127, 255, 127));
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
         g.dispose();
+    }
+
+    private boolean canWalkThere(int x, int y) {
+        ArrayList<Boolean> states = new ArrayList<>();
+
+        for (int i = 0; i < map.getLayerCount(); i++) {
+            if (((TileLayer) map.getLayer(i)).getTileAt(x, y) == null) {
+                states.add(true);
+            }
+        }
+
+        return states.size() == 0;
     }
 
     @Override
@@ -106,5 +136,22 @@ public class Entity implements Renderable {
         image.getRGB(0, 0, 32, 32, p, 0, 32);
 
         return p;
+    }
+
+    private void setPosition(int x, int y) {
+        this.entityX = x;
+        this.entityY = y;
+    }
+
+    @Override
+    public void call(Object... objects) {
+        String id = objects[0].toString();
+
+        if (id.equals(this.socketId)) {
+            System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
+
+            setPosition((int) objects[1], (int) objects[2]);
+            System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
+        }
     }
 }
