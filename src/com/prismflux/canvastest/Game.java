@@ -17,9 +17,9 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     static JFrame frame;
     public int tickCount = 0;
 
-    public static final int GAME_WIDTH = 960; //480;
+    public static final int GAME_WIDTH = 480; //480;
     public static final int GAME_HEIGHT = GAME_WIDTH / 12 * 9;
-    public static final int SCALE = 1;
+    public static final int SCALE = 2;
     private static ArrayList<Renderable> renderQueue = new ArrayList<>();
 
     private BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);

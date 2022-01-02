@@ -157,8 +157,8 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
             if (e.socketId != getSocket().id()) {
                 int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
                 int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
-                BufferedImage img = image.getSubimage(posX, posY, e.width, e.height);
-                Graphics2D g = (Graphics2D) img.getGraphics();
+                //BufferedImage img = image.getSubimage(e.getXOffset()  + posX, e.getYOffset() + posY, e.width, e.height);
+                Graphics2D g = (Graphics2D) image.getGraphics();
 
                 //int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
 
@@ -166,7 +166,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
                 e.drawGraphics(g);
 
                 //image.setRGB(e.getEntityX() * e.width, e.getEntityY() * e.height, e.width, e.height, entPixels, 0, e.height);
-                img.flush();
+                //img.flush();
             }
         }
 

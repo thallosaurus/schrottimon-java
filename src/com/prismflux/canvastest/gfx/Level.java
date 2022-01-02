@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 /**
  * @deprecated
  */
-public class Level implements Renderable, Animatable {
+public abstract class Level implements Renderable, Animatable {
 
     public int width = 17;
     public int height = 6;
@@ -218,13 +218,38 @@ public class Level implements Renderable, Animatable {
     }
 
     @Override
-    public void setXOffset(float offset) {
-        this.xOffset = offset;
+    public void setAnimationDirection(Direction d) {
+
     }
 
     @Override
-    public void setYOffset(float offset) {
-        this.yOffset = offset;
+    public void setAnimationDuration(int duration) {
+
+    }
+
+    @Override
+    public int getAnimationDuration() {
+        return 0;
+    }
+
+    @Override
+    public void setProgress(double deltaTick) {
+
+    }
+
+    @Override
+    public double getProgress() {
+        return 0;
+    }
+
+    @Override
+    public void resetAnimation() {
+
+    }
+
+    @Override
+    public void updateOffsets() {
+
     }
 
     @Override
@@ -235,6 +260,11 @@ public class Level implements Renderable, Animatable {
     @Override
     public int getYOffset() {
         return (int) yOffset * sheet.spriteHeight;
+    }
+
+    @Override
+    public Direction getAnimationDirection() {
+        return null;
     }
 
     public void update(double delta) {

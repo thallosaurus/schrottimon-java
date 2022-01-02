@@ -1,10 +1,19 @@
 package com.prismflux.canvastest.gfx;
 
 public interface Animatable {
+    public void resetAnimation();
 
-    public void setXOffset(float offset);
-    public void setYOffset(float offset);
+    public void updateOffsets();
 
     public int getXOffset();
     public int getYOffset();
+    public Direction getAnimationDirection();
+    public void setAnimationDirection(Direction d);
+    public void setAnimationDuration(int duration);
+    public int getAnimationDuration();
+
+    public void setProgress(double deltaTick);
+    public double getProgress();
+
+    public boolean shouldAnimate();
 }
