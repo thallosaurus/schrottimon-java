@@ -2,6 +2,7 @@ package com.prismflux.canvastest.gfx;
 
 import com.prismflux.canvastest.Game;
 
+import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -24,6 +25,11 @@ public class Animation implements Renderable, Runnable {
 
     @Override
     public void draw(int[] pixels, BufferedImage image, int offset, int row) {
+
+    }
+
+    @Override
+    public void drawGraphics(Graphics2D g) {
 
     }
 

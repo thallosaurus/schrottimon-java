@@ -40,7 +40,15 @@ public class Player extends Entity implements KeyListener {
             case 's':
                 moveDown();
                 break;
+            case 'u':
+                getSocket().emit("room", "/levels/unbenannt.tmx");
+                break;
         }
+    }
+
+    @Override
+    public void onUnload() {
+        InputHandler.removeKeyListener(this);
     }
 
     @Override

@@ -8,6 +8,7 @@ import org.mapeditor.core.TileLayer;
 import org.tiledreader.TiledLayer;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -41,6 +42,8 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         entityY = y;
         this.map = map;
 
+        //System.out.println(socketId.toString());
+
         this.socketId = socketId;
 
         try {
@@ -69,6 +72,10 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     protected void setEntityY(int y) {
         entityY = y;
+    }
+
+    public void onUnload() {
+        
     }
 
     protected void moveUp() {
@@ -127,6 +134,11 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     }
 
     @Override
+    public void drawGraphics(Graphics2D g) {
+        g.drawImage(getSpriteBuffer(), null, 0, 0 );
+    }
+
+    @Override
     public void update(double delta) {
 
     }
@@ -136,6 +148,10 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         image.getRGB(0, 0, 32, 32, p, 0, 32);
 
         return p;
+    }
+
+    public BufferedImage getSpriteBuffer() {
+        return image.getSubimage(0, 0, 32, 32);
     }
 
     private void setPosition(int x, int y) {
@@ -148,10 +164,10 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         String id = objects[0].toString();
 
         if (id.equals(this.socketId)) {
-            System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
+            //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
 
             setPosition((int) objects[1], (int) objects[2]);
-            System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
+            //System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
         }
     }
 }

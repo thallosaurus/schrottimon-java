@@ -12,6 +12,11 @@ public class InputHandler implements KeyListener {
         gameInstance.addKeyListener(this);
     }
 
+    public static void removeKeyListener(KeyListener l) {
+        int index = keyListeners.indexOf(l);
+        keyListeners.remove(index);
+    }
+
     @Override
     public void keyTyped(KeyEvent e) {
         for (int i = 0; i < keyListeners.size(); i++) {

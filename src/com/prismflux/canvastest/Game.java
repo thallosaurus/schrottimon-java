@@ -71,9 +71,6 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
         frame.setResizable(false);
         frame.setLocationRelativeTo(null);
 
-        //Thread gameLoop = new Thread(this);
-        //gameLoop.start();
-
         frame.setVisible(true);
     }
 
@@ -182,6 +179,11 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
 
         g.drawString("Hello", 0, 0);
         g.dispose();
+    }
+
+    @Override
+    public void drawGraphics(Graphics2D g) {
+
     }
 
     @Override

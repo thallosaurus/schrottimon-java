@@ -175,6 +175,11 @@ public class Level implements Renderable, Animatable {
 
     }
 
+    @Override
+    public void drawGraphics(Graphics2D g) {
+
+    }
+
     private void drawEntities(BufferedImage image) {
         for (int i = 0; i < entities.size(); i++) {
             Entity e = entities.get(i);

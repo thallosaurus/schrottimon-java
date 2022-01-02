@@ -50,11 +50,12 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
             @Override
             public void call(Object... objects) {
                 System.out.println("[" + getSocket().id() + "]New Player with ID: " + objects[0] + " on map");
-                System.out.println(objects);
+                //System.out.println(objects);
                 if (objects[0].equals(getSocket().id())) {
                     System.out.println("Spawning Player");
                     players.add(new Player(getSocket(), map, (int) objects[1], (int) objects[2]));
                 } else {
+                    System.out.println("Spawning Entity " + objects[0]);
                     players.add(new Entity(getSocket(), (String) objects[0], map, "/entities/Base.png", (int) objects[1], (int) objects[2]));
                 }
             }
@@ -69,12 +70,15 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
                 for (int i = 0; i < players.size(); i++) {
                     Entity e = players.get(i);
-                    System.out.println(e.socketId);
-                    if (e.socketId == (objects[0].toString())) index = i;
+                    if (e.socketId.equals(objects[0].toString())) {
+                        index = i;
+                    }
                 }
 
                 if (index != -1) {
+                    players.get(index).onUnload();
                     players.remove(index);
+                    System.out.println(objects[0] + " left");
                 } else {
                     System.out.println("index not found for id " + (String) objects[0]);
                 }
@@ -107,6 +111,11 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
     }
 
+    @Override
+    public void drawGraphics(Graphics2D g) {
+
+    }
+
     double d = 0;
 
     @Override
@@ -121,7 +130,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     }
 
     public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
-        if (renderer != null) {
+        if (renderer != null && map != null) {
             Graphics2D g = (Graphics2D) image.getGraphics();
             drawBackground(g);
 
@@ -145,15 +154,30 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     private void drawEntitiesDebug(BufferedImage image) {
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
-            int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2) - (e.getEntityX() * 32));
-            int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2) - (e.getEntityY() * 32));
-            BufferedImage img = image.getSubimage(posX, posY, e.width, e.height);
-            int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+            if (e.socketId != getSocket().id()) {
+                int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
+                int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
+                BufferedImage img = image.getSubimage(posX, posY, e.width, e.height);
+                Graphics2D g = (Graphics2D) img.getGraphics();
 
-            e.drawDebug(entPixels, img, 0, width);
+                //int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
 
-            //image.setRGB(e.getEntityX() * e.width, e.getEntityY() * e.height, e.width, e.height, entPixels, 0, e.height);
-            img.flush();
+                //e.drawDebug(entPixels, img, 0, width);
+                e.drawGraphics(g);
+
+                //image.setRGB(e.getEntityX() * e.width, e.getEntityY() * e.height, e.width, e.height, entPixels, 0, e.height);
+                img.flush();
+            }
+        }
+
+        if (getPlayer() != null) {
+            int posX = (Game.GAME_WIDTH / 2) - (getPlayer().width / 2);
+            int posY = (Game.GAME_HEIGHT / 2) - (getPlayer().height / 2);
+            BufferedImage img = image.getSubimage(posX, posY, getPlayer().width, getPlayer().height);
+            Graphics2D g = (Graphics2D) img.getGraphics();
+            //int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+            //getPlayer().draw(entPixels, img, 0, width);
+            getPlayer().drawGraphics(g);
         }
     }
 
@@ -178,7 +202,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         Player p = null;
 
         for (int i = 0; i < players.size(); i++) {
-            if (players.get(i).socketId == getSocket().id()){
+            if (getSocket().id().equals(players.get(i).socketId)){
                 p = (Player) players.get(i);
             }
         }
@@ -191,7 +215,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     public void call(Object... objects) {
         //level = new Level((String) objects[0]);
         try {
-            System.out.println(objects[0]);
+            //System.out.println(objects[0]);
 
             File f = new File("./res/levels");
             map = new TMXMapReader().readMap(Screen.class.getResourceAsStream((String) objects[0]), f.getCanonicalPath());
@@ -221,6 +245,10 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
                 break;
             case 'd':
                 positionX--;
+                break;
+            case 'u':
+                getSocket().emit("room", "/levels/testmap.tmx");
+                //getSocket().emit("room", "/levels/real_map2_20x20.tmx");
                 break;
         }
     }
