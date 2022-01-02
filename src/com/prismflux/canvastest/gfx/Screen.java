@@ -19,7 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Screen extends SocketConnection implements Renderable, Emitter.Listener, KeyListener {
+public class Screen extends SocketConnection implements Renderable, Emitter.Listener, Animatable {
     public static final int MAP_WIDTH = 32;
     public static final int MAP_WIDTH_MASK = MAP_WIDTH - 1;
 
@@ -28,7 +28,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     public int width;
     public int height;
 
-    public Level level;
+    //public Level level;
 
     private Map map = null;
     private OrthogonalRenderer renderer = null;
@@ -36,10 +36,14 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     private int clipX = 0;
     private int clipY = 0;
 
-    private int positionX = 0;
-    private int positionY = 0;
+    //private int positionX = 0;
+    //private int positionY = 0;
 
     private ArrayList<Entity> players = new ArrayList<>();
+
+    public Screen getScreen() {
+        return this;
+    }
 
     public Screen(int width, int height) {
         getSocket().emit("room", "/levels/real_map2_20x20.tmx");
@@ -53,7 +57,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
                 //System.out.println(objects);
                 if (objects[0].equals(getSocket().id())) {
                     System.out.println("Spawning Player");
-                    players.add(new Player(getSocket(), map, (int) objects[1], (int) objects[2]));
+                    players.add(new Player(getSocket(), map, getScreen(), (int) objects[1], (int) objects[2]));
                 } else {
                     System.out.println("Spawning Entity " + objects[0]);
                     players.add(new Entity(getSocket(), (String) objects[0], map, "/entities/Base.png", (int) objects[1], (int) objects[2]));
@@ -89,49 +93,10 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         //InputHandler.keyListeners.add(this);
     }
 
-    public void draw(int[] pixels, BufferedImage image, int offset, int row) {
-        if (renderer != null) {
-            Graphics2D g = (Graphics2D) image.getGraphics();
-            drawBackground(g);
-
-            if (getPlayer() != null) {
-                g.setClip(getPlayer().getEntityX() * 32, getPlayer().getEntityY() * 32, Game.GAME_WIDTH, Game.GAME_HEIGHT);
-            }
-
-            for (int i = 0; i < map.getLayerCount(); i++) {
-                TileLayer tileLayer = (TileLayer) map.getLayer(i);
-                renderer.paintTileLayer(g, tileLayer);
-            }
-
-            drawEntities(image);
-
-            g.dispose();
-        }
-
-
-    }
-
     @Override
     public void drawGraphics(Graphics2D g) {
-
-    }
-
-    double d = 0;
-
-    @Override
-    public void update(double delta) {
-
-    }
-
-    public void drawBackground(Graphics2D g) {
-        g.setColor(Color.GRAY);
-        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
-        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
-    }
-
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
         if (renderer != null && map != null) {
-            Graphics2D g = (Graphics2D) image.getGraphics();
+            //Graphics2D g = (Graphics2D) image.getGraphics();
             drawBackground(g);
 
             for (int i = 0; i < map.getLayerCount(); i++) {
@@ -145,53 +110,85 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
                 renderer.paintTileLayer(g, tileLayer);
             }
 
-            drawEntitiesDebug(image);
+            drawEntities(g);
+
+            //g.dispose();
+        }
+    }
+
+    @Override
+    public void update(double delta) {
+
+    }
+
+    public void drawBackground(Graphics2D g) {
+        g.setColor(Color.GRAY);
+        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+    }
+
+    public void drawDebug(Graphics2D g) {
+        if (renderer != null && map != null) {
+            //Graphics2D g = (Graphics2D) image.getGraphics();
+            drawBackground(g);
+
+            for (int i = 0; i < map.getLayerCount(); i++) {
+                TileLayer tileLayer = (TileLayer) map.getLayer(i);
+                if (getPlayer() != null) {
+                    int posX = ((Game.GAME_WIDTH / 2) - (tileLayer.getTileAt(0, 0).getWidth() / 2)) - (getPlayer().getEntityX() * 32);
+                    int posY = ((Game.GAME_HEIGHT / 2) - (tileLayer.getTileAt(0, 0).getHeight() / 2)) - (getPlayer().getEntityY() * 32);
+                    System.out.println(getXOffset() + ", " + getYOffset());
+                    g.translate(getXOffset() + posX, getYOffset() + posY);
+                }
+
+                renderer.paintTileLayer(g, tileLayer);
+            }
+
+            drawEntitiesDebug(g);
 
             g.dispose();
         }
     }
 
-    private void drawEntitiesDebug(BufferedImage image) {
+    private void drawEntitiesDebug(Graphics2D g) {
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
             if (e.socketId != getSocket().id()) {
-                int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
-                int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
-                //BufferedImage img = image.getSubimage(e.getXOffset()  + posX, e.getYOffset() + posY, e.width, e.height);
-                Graphics2D g = (Graphics2D) image.getGraphics();
-
-                //int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-
-                //e.drawDebug(entPixels, img, 0, width);
-                e.drawGraphics(g);
-
-                //image.setRGB(e.getEntityX() * e.width, e.getEntityY() * e.height, e.width, e.height, entPixels, 0, e.height);
-                //img.flush();
+                //int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
+                //int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
+                e.drawDebug(g);
             }
         }
 
         if (getPlayer() != null) {
             int posX = (Game.GAME_WIDTH / 2) - (getPlayer().width / 2);
             int posY = (Game.GAME_HEIGHT / 2) - (getPlayer().height / 2);
-            BufferedImage img = image.getSubimage(posX, posY, getPlayer().width, getPlayer().height);
-            Graphics2D g = (Graphics2D) img.getGraphics();
+            //BufferedImage img = image.getSubimage(posX, posY, getPlayer().width, getPlayer().height);
+            //Graphics2D g = (Graphics2D) img.getGraphics();
             //int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
             //getPlayer().draw(entPixels, img, 0, width);
             getPlayer().drawGraphics(g);
         }
     }
 
-    private void drawEntities(BufferedImage image) {
+    private void drawEntities(Graphics2D g) {
+        //Graphics2D g = (Graphics2D) image.getGraphics();
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
-            BufferedImage img = image.getSubimage(e.getEntityX() * e.width, e.getEntityY() * e.height, e.width, e.height);
-            int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+            if (e.socketId != getSocket().id()) {
+                int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
+                int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
+                e.drawGraphics(g);
+            }
 
-            e.draw(entPixels, img, 0, width);
-
-            //image.setRGB(e.getEntityX() * e.width, e.getEntityY() * e.height, e.width, e.height, entPixels, 0, e.height);
-            img.flush();
         }
+
+        if (getPlayer() != null) {
+            int posX = (Game.GAME_WIDTH / 2) - (getPlayer().width / 2);
+            int posY = (Game.GAME_HEIGHT / 2) - (getPlayer().height / 2);
+            getPlayer().drawGraphics(g);
+        }
+        g.dispose();
     }
 
     int XYtoIndex(int x, int y) {
@@ -219,6 +216,10 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
             File f = new File("./res/levels");
             map = new TMXMapReader().readMap(Screen.class.getResourceAsStream((String) objects[0]), f.getCanonicalPath());
+
+            width = map.getTileHeightMax();
+            height = map.getTileHeightMax();
+            System.out.println("Width: " + width + ", height: " + height);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -226,35 +227,90 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         renderer = new OrthogonalRenderer(map);
     }
 
+    /* ANIMATION STUFF */
     @Override
-    public void keyTyped(KeyEvent e) {
-
+    public void resetAnimation() {
+        progress = 0;
+        d = null;
+        duration = -1;
+        xOffset = 0;
+        yOffset = 0;
     }
 
     @Override
-    public void keyPressed(KeyEvent e) {
-        switch (e.getKeyChar()) {
-            case 'w':
-                positionY++;
+    public void updateOffsets() {
+//        System.out.println(getAnimationDirection());
+        switch (getAnimationDirection()) {
+            case UP:
+                yOffset = getProgressAsPercentage() * height;
                 break;
-            case 'a':
-                positionX++;
+            case DOWN:
+                yOffset = (getProgressAsPercentage() * -height);
+                //System.out.println(getProgressAsPercentage() * height);
                 break;
-            case 's':
-                positionY--;
+            case LEFT:
+                xOffset = getProgressAsPercentage() * width;
                 break;
-            case 'd':
-                positionX--;
-                break;
-            case 'u':
-                getSocket().emit("room", "/levels/testmap.tmx");
-                //getSocket().emit("room", "/levels/real_map2_20x20.tmx");
+            case RIGHT:
+                xOffset = getProgressAsPercentage() * -width;
                 break;
         }
     }
 
-    @Override
-    public void keyReleased(KeyEvent e) {
+    private double xOffset = 0;
+    private double yOffset = 0;
 
+    @Override
+    public int getXOffset() {
+        return (int) xOffset;
+    }
+
+    @Override
+    public int getYOffset() {
+        return (int) yOffset;
+    }
+
+    private Direction d = null;
+    @Override
+    public Direction getAnimationDirection() {
+        return d;
+    }
+
+    @Override
+    public void setAnimationDirection(Direction d_) {
+        d = d_;
+    }
+
+    private int duration = -1;
+
+    @Override
+    public void setAnimationDuration(int duration_) {
+        duration = duration_;
+    }
+
+    @Override
+    public int getAnimationDuration() {
+        return duration;
+    }
+
+    private double progress = 0;
+
+    @Override
+    public void setProgress(double deltaTick) {
+        progress += deltaTick;
+    }
+
+    @Override
+    public double getProgress() {
+        return progress;
+    }
+
+    private double getProgressAsPercentage() {
+        return progress / duration;
+    }
+
+    @Override
+    public boolean shouldAnimate() {
+        return getAnimationDirection() != null;
     }
 }

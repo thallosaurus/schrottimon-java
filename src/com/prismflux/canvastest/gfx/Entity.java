@@ -34,7 +34,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     public String socketId = null;
 
-    private Direction direction = Direction.DOWN;
+    protected Direction direction = Direction.DOWN;
 
     public Entity(Socket socket, String socketId, Map map, String path, int x, int y) {
         //this.level = level;
@@ -80,50 +80,15 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         
     }
 
-    protected void moveUp() {
-        System.out.println("move up");
-        setDirection(Direction.UP);
-        if (this.canWalkThere(this.entityX, this.entityY - 1)) {
-            //entityY--;
-            getSocket().emit("moveTo", entityX, entityY - 1);
-        }
-    }
-
-    protected void moveDown() {
-        //System.out.println("walk down? " + this.canWalkThere(this.entityX, this.entityY + 1));
-        setDirection(Direction.DOWN);
-        if (this.canWalkThere(this.entityX, this.entityY + 1)) {
-            //entityY++;
-            getSocket().emit("moveTo", entityX, entityY + 1);
-        }
-    }
-
-    protected void moveLeft() {
-        setDirection(Direction.LEFT);
-        Animation.scheduleUpdate(this, Direction.LEFT, 20);
-        if (this.canWalkThere(this.entityX - 1, this.entityY)) {
-            //entityX--;
-            getSocket().emit("moveTo", entityX - 1, entityY);
-        }
-    }
-
-    protected void moveRight() {
-        setDirection(Direction.RIGHT);
-        if (this.canWalkThere(this.entityX + 1, this.entityY)) {
-            //entityX++;
-            getSocket().emit("moveTo", entityX + 1, entityY);
-        }
-    }
-
     @Override
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
-        Graphics g = image.getGraphics();
+    public void drawDebug(Graphics2D g) {
+        //Graphics g = image.getGraphics();
         g.setColor(new Color(127, 127, 255, 127));
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
-        g.dispose();
+        //g.dispose();
     }
 
-    private boolean canWalkThere(int x, int y) {
+    protected boolean canWalkThere(int x, int y) {
         ArrayList<Boolean> states = new ArrayList<>();
 
         for (int i = 0; i < map.getLayerCount(); i++) {
@@ -135,18 +100,13 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         return states.size() == 0;
     }
 
-    private void setDirection(Direction d) {
+    protected void setDirection(Direction d) {
         direction = d;
     }
 
     @Override
-    public void draw(int[] pixels, BufferedImage image, int offset, int row) {
-        image.setRGB(0, 0, width, height, getSprite(), 0, height);
-    }
-
-    @Override
     public void drawGraphics(Graphics2D g) {
-        g.drawImage(getSpriteBuffer(), null, 0, 0 );
+        g.drawImage(getSpriteBuffer(), null, this.entityX * width, this.entityY * width);
     }
 
     @Override
@@ -162,12 +122,13 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     }
 
     public BufferedImage getSpriteBuffer() {
-        int howLongIsOneSubFrame = duration;
+        int howLongIsOneSubFrame = duration / 4;
         int currentTileY = shouldAnimate() ? ((int) animationDelta % howLongIsOneSubFrame): 0;
+
         return image.getSubimage(this.direction.ordinal() * width, currentTileY, 32, 32);
     }
 
-    private void setPosition(int x, int y) {
+    protected void setPosition(int x, int y) {
         this.entityX = x;
         this.entityY = y;
     }
@@ -178,6 +139,9 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
         if (id.equals(this.socketId)) {
             //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
+            setDirection(Direction.values()[Integer.parseInt(objects[3].toString())]);
+
+            Animation.scheduleUpdate(this, Direction.values()[Integer.parseInt(objects[3].toString())], 64);
 
             setPosition((int) objects[1], (int) objects[2]);
             //System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
@@ -251,7 +215,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     public void setProgress(double deltaTick) {
         animationDelta += deltaTick;
         updateOffsets();
-        System.out.println("Animation Progrss: " + animationDelta);
+        //System.out.println("Animation Progrss: " + animationDelta);
     }
 
     @Override

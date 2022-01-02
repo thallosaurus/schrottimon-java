@@ -19,14 +19,14 @@ public class Animation implements Renderable, Runnable {
     }
 
     @Override
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
+    public void drawDebug(Graphics2D g) {
 
     }
 
-    @Override
+    /*@Override
     public void draw(int[] pixels, BufferedImage image, int offset, int row) {
 
-    }
+    }*/
 
     @Override
     public void drawGraphics(Graphics2D g) {
@@ -46,11 +46,14 @@ public class Animation implements Renderable, Runnable {
         for (int i = 0; i < animationQueue.size(); i++) {
             Animatable a = animationQueue.get(i);
             a.setProgress(delta);
+
             if (a.getProgress() > (double) a.getAnimationDuration()) {
                 a.resetAnimation();
 
                 int index = animationQueue.indexOf(a);
                 animationQueue.remove(index);
+            } else {
+                a.updateOffsets();
             }
             //animationQueue.get(i).setXOffset(x);
             //animationQueue.get(i).setYOffset(x);
@@ -66,6 +69,7 @@ public class Animation implements Renderable, Runnable {
 
     public static void scheduleUpdate(Animatable a, Direction d, int duration) {
         a.setAnimationDirection(d);
+        System.out.println("Did it call the screen? " + d);
         a.setAnimationDuration(duration);
         animationQueue.add(a);
     }

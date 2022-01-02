@@ -145,17 +145,22 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
             return;
         }
 
+        Graphics2D g = (Graphics2D) bs.getDrawGraphics();
+        g.scale(SCALE, SCALE);
+        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+
         for (int i = 0; i < Game.renderQueue.size(); i++) {
             if (debug) {
-                Game.renderQueue.get(i).drawDebug(pixels, image, 0, WIDTH);
+                Game.renderQueue.get(i).drawDebug(g);
             } else {
-                Game.renderQueue.get(i).draw(pixels, image, 0, WIDTH);
+                //Game.renderQueue.get(i).draw(pixels, image, 0, WIDTH);
+                Game.renderQueue.get(i).drawGraphics(g);
             }
         }
 
-        Graphics g = bs.getDrawGraphics();
+        //Graphics g = bs.getDrawGraphics();
 
-        g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+        g.drawImage(image, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT * SCALE, null);
 
         g.dispose();
         bs.show();
@@ -166,19 +171,8 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     }
 
     @Override
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
+    public void drawDebug(Graphics2D g) {
 
-    }
-
-    @Override
-    public void draw(int[] pixels, BufferedImage image, int offset, int row) {
-        Graphics g = image.getGraphics();
-
-        Font font = new Font("Serif", Font.PLAIN, 36);
-        g.setFont(font);
-
-        g.drawString("Hello", 0, 0);
-        g.dispose();
     }
 
     @Override
