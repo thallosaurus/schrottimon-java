@@ -54,6 +54,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
             @Override
             public void call(Object... objects) {
                 System.out.println("[" + getSocket().id() + "]New Player with ID: " + objects[0] + " on map");
+                System.out.println("Current Player on map " + players.size());
                 //System.out.println(objects);
                 if (objects[0].equals(getSocket().id())) {
                     System.out.println("Spawning Player");
@@ -94,10 +95,11 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     }
 
     @Override
-    public void drawGraphics(Graphics2D g) {
+    public void drawGraphics(Graphics2D g_) {
+        Graphics2D g = (Graphics2D) g_.create();
         if (renderer != null && map != null) {
-            //Graphics2D g = (Graphics2D) image.getGraphics();
-            drawBackground(g);
+
+            //You have to create a seperate graphics context, because otherwise it wont draw
 
             for (int i = 0; i < map.getLayerCount(); i++) {
                 TileLayer tileLayer = (TileLayer) map.getLayer(i);
@@ -110,9 +112,9 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
                 renderer.paintTileLayer(g, tileLayer);
             }
 
-            drawEntities(g);
+            drawEntitiesDebug(g);
 
-            //g.dispose();
+            g.dispose();
         }
     }
 
@@ -121,23 +123,17 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
     }
 
-    public void drawBackground(Graphics2D g) {
-        g.setColor(Color.GRAY);
-        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
-        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
-    }
-
-    public void drawDebug(Graphics2D g) {
+    public void drawDebug(Graphics2D g_) {
+        Graphics2D g = (Graphics2D) g_.create();
         if (renderer != null && map != null) {
-            //Graphics2D g = (Graphics2D) image.getGraphics();
-            drawBackground(g);
+
+            //You have to create a seperate graphics context, because otherwise it wont draw
 
             for (int i = 0; i < map.getLayerCount(); i++) {
                 TileLayer tileLayer = (TileLayer) map.getLayer(i);
                 if (getPlayer() != null) {
                     int posX = ((Game.GAME_WIDTH / 2) - (tileLayer.getTileAt(0, 0).getWidth() / 2)) - (getPlayer().getEntityX() * 32);
                     int posY = ((Game.GAME_HEIGHT / 2) - (tileLayer.getTileAt(0, 0).getHeight() / 2)) - (getPlayer().getEntityY() * 32);
-                    System.out.println(getXOffset() + ", " + getYOffset());
                     g.translate(getXOffset() + posX, getYOffset() + posY);
                 }
 
@@ -188,7 +184,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
             int posY = (Game.GAME_HEIGHT / 2) - (getPlayer().height / 2);
             getPlayer().drawGraphics(g);
         }
-        g.dispose();
+        //g.dispose();
     }
 
     int XYtoIndex(int x, int y) {
@@ -219,7 +215,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
             width = map.getTileHeightMax();
             height = map.getTileHeightMax();
-            System.out.println("Width: " + width + ", height: " + height);
+            //System.out.println("Width: " + width + ", height: " + height);
         } catch (Exception e) {
             e.printStackTrace();
         }

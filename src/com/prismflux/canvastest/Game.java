@@ -1,6 +1,7 @@
 package com.prismflux.canvastest;
 
 import com.prismflux.canvastest.gfx.*;
+import com.prismflux.canvastest.gfx.Menu;
 import com.prismflux.canvastest.net.SocketConnection;
 
 import javax.swing.*;
@@ -31,7 +32,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     //private Screen screen;
 
     public static void main(String[] args) {
-	// write your code here
+        // write your code here
         g = new Game();
         g.startEntry();
     }
@@ -43,10 +44,11 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     public void init() {
         //screen =
         //new SocketConnection(this);
+        addToQueue(this);
         new InputHandler(this);
         new Screen(GAME_WIDTH, GAME_HEIGHT /*new Level("/levels/unbenannt.tmx")*/);
+        new Menu();
         new Animation();
-        addToQueue(this);
     }
 
     private synchronized void startEntry() {
@@ -134,7 +136,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
         }*/
 
         for (int i = 0; i < Game.renderQueue.size(); i++) {
-                Game.renderQueue.get(i).update(delta);
+            Game.renderQueue.get(i).update(delta);
         }
     }
 
@@ -153,7 +155,6 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
             if (debug) {
                 Game.renderQueue.get(i).drawDebug(g);
             } else {
-                //Game.renderQueue.get(i).draw(pixels, image, 0, WIDTH);
                 Game.renderQueue.get(i).drawGraphics(g);
             }
         }
@@ -173,10 +174,16 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     @Override
     public void drawDebug(Graphics2D g) {
 
+        g.setColor(Color.GRAY);
+        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+
     }
 
     @Override
     public void drawGraphics(Graphics2D g) {
+        g.setColor(Color.GRAY);
+        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
 
     }
 

@@ -23,7 +23,7 @@ public class Player extends Entity implements KeyListener {
     }
 
     protected void moveUp() {
-        System.out.println("move up");
+        //System.out.println("move up");
         setDirection(Direction.UP);
         if (this.canWalkThere(getEntityX(), getEntityY() - 1)) {
             //entityY--;
@@ -115,7 +115,7 @@ public class Player extends Entity implements KeyListener {
         //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
         int dir = Integer.parseInt(objects[3].toString());
 
-        System.out.println("Down?" + dir);
+        //System.out.println("Down?" + dir);
         //setDirection(Direction.values()[dir]);
 
         //parentScreen.setDirection(Direction.values()[Integer.parseInt(objects[3].toString())]);

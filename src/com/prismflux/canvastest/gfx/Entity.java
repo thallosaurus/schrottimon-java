@@ -122,8 +122,8 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     }
 
     public BufferedImage getSpriteBuffer() {
-        int howLongIsOneSubFrame = duration / 4;
-        int currentTileY = shouldAnimate() ? ((int) animationDelta % howLongIsOneSubFrame): 0;
+        int howLongIsOneSubFrame = duration / 25;
+        int currentTileY = shouldAnimate() ? ((int) howLongIsOneSubFrame): 0;
 
         return image.getSubimage(this.direction.ordinal() * width, currentTileY, 32, 32);
     }
@@ -138,6 +138,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         String id = objects[0].toString();
 
         if (id.equals(this.socketId)) {
+            System.out.println("playermove Update for " + this.socketId + "(Sent ID: " + id + ")");
             //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
             setDirection(Direction.values()[Integer.parseInt(objects[3].toString())]);
 
@@ -215,7 +216,6 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     public void setProgress(double deltaTick) {
         animationDelta += deltaTick;
         updateOffsets();
-        //System.out.println("Animation Progrss: " + animationDelta);
     }
 
     @Override

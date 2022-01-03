@@ -69,9 +69,10 @@ public class Animation implements Renderable, Runnable {
 
     public static void scheduleUpdate(Animatable a, Direction d, int duration) {
         a.setAnimationDirection(d);
-        System.out.println("Did it call the screen? " + d);
-        a.setAnimationDuration(duration);
+
+        //a.setAnimationDuration(duration);
         animationQueue.add(a);
+        System.out.println("Did it call the screen? " + animationQueue.size());
     }
 
     @Override
