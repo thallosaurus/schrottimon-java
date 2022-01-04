@@ -23,13 +23,8 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     public int tileWidth;
     public int tileHeight;
 
-    //public Level level;
-
     private Map map = null;
     private OrthogonalRenderer renderer = null;
-
-    private final int clipX = 0;
-    private final int clipY = 0;
 
     private final ArrayList<Entity> players = new ArrayList<>();
 
@@ -41,43 +36,34 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         this.width = width;
         this.height = height;
         this.registerSocketListener("loadlevel", this);
-        this.registerSocketListener("playerjoin", new Emitter.Listener() {
-            @Override
-            public void call(Object... objects) {
-                System.out.println("[" + getSocket().id() + "]New Player with ID: " + objects[0] + " on map");
-                System.out.println("Current Player on map " + players.size());
-                //System.out.println(objects);
-                if (objects[0].equals(getSocket().id())) {
-                    System.out.println("Spawning Player");
-                    players.add(new Player(getSocket(), map, getScreen(), (int) objects[1], (int) objects[2]));
-                } else {
-                    System.out.println("Spawning Entity " + objects[0]);
-                    players.add(new Entity(getSocket(), (String) objects[0], map, "/entities/Base.png", (int) objects[1], (int) objects[2]));
-                }
+        this.registerSocketListener("playerjoin", objects -> {
+            System.out.println("[" + getSocket().id() + "]New Player with ID: " + objects[0] + " on map");
+            System.out.println("Current Player on map " + players.size());
+            if (objects[0].equals(getSocket().id())) {
+                System.out.println("Spawning Player");
+                players.add(new Player(getSocket(), map, getScreen(), (int) objects[1], (int) objects[2]));
+            } else {
+                System.out.println("Spawning Entity " + objects[0]);
+                players.add(new Entity(getSocket(), (String) objects[0], map, "/entities/Base.png", (int) objects[1], (int) objects[2]));
             }
         });
 
-        this.registerSocketListener("playerleave", new Emitter.Listener() {
-            @Override
-            public void call(Object... objects) {
-                System.out.println("Leaving Player");
+        this.registerSocketListener("playerleave", objects -> {
+            int index = -1;
 
-                int index = -1;
-
-                for (int i = 0; i < players.size(); i++) {
-                    Entity e = players.get(i);
-                    if (e.socketId.equals(objects[0].toString())) {
-                        index = i;
-                    }
+            for (int i = 0; i < players.size(); i++) {
+                Entity e = players.get(i);
+                if (e.socketId.equals(objects[0].toString())) {
+                    index = i;
                 }
+            }
 
-                if (index != -1) {
-                    players.get(index).onUnload();
-                    players.remove(index);
-                    System.out.println(objects[0] + " left");
-                } else {
-                    System.out.println("index not found for id " + objects[0]);
-                }
+            if (index != -1) {
+                players.get(index).onUnload();
+                players.remove(index);
+                System.out.println(objects[0] + " left");
+            } else {
+                System.out.println("index not found for id " + objects[0]);
             }
         });
 

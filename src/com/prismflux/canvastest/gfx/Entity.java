@@ -64,7 +64,8 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     }
 
     public void onUnload() {
-
+        System.out.println("Unregistering Socket Events");
+        unregisterSocketListener("playermove", this);
     }
 
     @Override

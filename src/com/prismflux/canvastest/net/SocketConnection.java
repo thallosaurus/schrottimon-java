@@ -52,4 +52,8 @@ public class SocketConnection {
     protected void registerSocketListener(String tag, Emitter.Listener listener) {
         socket.on(tag, listener);
     }
+
+    protected void unregisterSocketListener(String tag, Emitter.Listener fn) {
+        socket.off(tag, fn);
+    }
 }

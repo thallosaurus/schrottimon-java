@@ -42,7 +42,6 @@ public class Animation implements Renderable, Runnable {
 
         if (d > 60) {
             d = 0;
-            //System.out.println("Tick");
         }
 
         for (int i = 0; i < animationQueue.size(); i++) {
@@ -57,16 +56,7 @@ public class Animation implements Renderable, Runnable {
             } else {
                 a.updateOffsets();
             }
-            //animationQueue.get(i).setXOffset(x);
-            //animationQueue.get(i).setYOffset(x);
-
         }
-
-        /*float off = Math.abs((float) Math.sin(delta));
-        for (int i = 0; i < animationQueue.size(); i++) {
-            animationQueue.get(i).setXOffset(off);
-            animationQueue.get(i).setYOffset(off);
-        }*/
     }
 
     public static void scheduleUpdate(Animatable a, Direction d, double durationInSeconds) {
@@ -77,7 +67,6 @@ public class Animation implements Renderable, Runnable {
             a.initAnimation(d);
             animationQueue.add(a);
         }
-        //System.out.println("Did it call the screen? " + animationQueue.size());
     }
 
     @Override
@@ -87,11 +76,6 @@ public class Animation implements Renderable, Runnable {
                 Thread.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
-
-            for (int i = 0; i < animationQueue.size(); i++) {
-                //animationQueue.get(i).setXOffset(x);
-                //animationQueue.get(i).setYOffset(x);
             }
         }
     }

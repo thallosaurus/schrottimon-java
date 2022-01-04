@@ -4,22 +4,21 @@ import com.prismflux.canvastest.Game;
 import com.prismflux.canvastest.InputHandler;
 
 import javax.swing.*;
+import javax.swing.event.MouseInputListener;
+import javax.swing.plaf.RootPaneUI;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 
 public class Menu implements Renderable, KeyListener {
 
     private boolean show = false;
-    private final JRootPane jrp;
+    //private final JRootPane jrp;
 
-    public Menu() {
+    public Menu(Game g) {
         InputHandler.keyListeners.add(this);
         Game.addToQueue(this);
 
-        jrp = new JRootPane();
-        jrp.add(new JLabel("Hello"));
-        jrp.setVisible(true);
+        //g.addMouseListener(this);
     }
 
     @Override
@@ -30,6 +29,7 @@ public class Menu implements Renderable, KeyListener {
             g.drawString("Hello", 50, 50);
 
             //jrp.paint(g);
+            //frame.paint(g);
         }
         g.dispose();
     }

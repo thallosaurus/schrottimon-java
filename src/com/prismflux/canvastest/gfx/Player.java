@@ -40,7 +40,6 @@ public class Player extends Entity implements KeyListener {
     protected void moveLeft() {
         if (!this.shouldAnimate()) {
             setDirection(Direction.LEFT);
-            System.out.println("Is animating?" + this.shouldAnimate());
             getSocket().emit("moveTo", getEntityX() - 1, getEntityY(), running);
         }
     }
@@ -74,13 +73,10 @@ public class Player extends Entity implements KeyListener {
             case 's':
                 moveDown();
                 break;
-            case 'u':
-                getSocket().emit("room", "/unbenannt.tmx");
-                break;
+
             case 'z':
                 MapObject o = parentScreen.getTeleportForTileUnderPlayer(getEntityX(), getEntityY());
                 if (o != null) {
-                    //System.out.println(o.getProperties().getProperty("target"));
                     getSocket().emit("room", o.getProperties().getProperty("target"));
                 }
                 break;
@@ -89,6 +85,7 @@ public class Player extends Entity implements KeyListener {
 
     @Override
     public void onUnload() {
+        super.onUnload();
         InputHandler.removeKeyListener(this);
     }
 

@@ -47,7 +47,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
         addToQueue(this);
         new InputHandler(this);
         new Screen(GAME_WIDTH, GAME_HEIGHT /*new Level("/levels/unbenannt.tmx")*/);
-        new Menu();
+        new Menu(this);
         new Animation();
     }
 
