@@ -1,25 +1,18 @@
 package com.prismflux.canvastest.gfx;
 
 import com.prismflux.canvastest.Game;
-import com.prismflux.canvastest.InputHandler;
 import com.prismflux.canvastest.net.SocketConnection;
 import io.socket.emitter.Emitter;
 import org.mapeditor.core.Map;
 import org.mapeditor.core.TileLayer;
 import org.mapeditor.io.TMXMapReader;
-import org.mapeditor.view.IsometricRenderer;
 import org.mapeditor.view.OrthogonalRenderer;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 
-public class Screen extends SocketConnection implements Renderable, Emitter.Listener, Animatable {
+public class Screen extends SocketConnection implements Renderable, Emitter.Listener {
     public static final int MAP_WIDTH = 32;
     public static final int MAP_WIDTH_MASK = MAP_WIDTH - 1;
 
@@ -27,6 +20,8 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     public static final int TILE_HEIGHT = TILE_WIDTH;
     public int width;
     public int height;
+    public int tileWidth;
+    public int tileHeight;
 
     //public Level level;
 
@@ -91,7 +86,22 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         });
 
         Game.addToQueue(this);
-        //InputHandler.keyListeners.add(this);
+    }
+
+    private int getPlayerXWithOffset() {
+        if (getPlayer() != null) {
+            return ((Game.GAME_WIDTH / 2) - (tileWidth) - ((getPlayer().getEntityX() * 32) + getPlayer().getXOffset()));
+        } else {
+            return 0;
+        }
+    }
+
+    private int getPlayerYWithOffset() {
+        if (getPlayer() != null) {
+            return ((Game.GAME_HEIGHT / 2) - (tileHeight) - (getPlayer().getEntityY() * 32 + getPlayer().getYOffset()));
+        } else {
+            return 0;
+        }
     }
 
     @Override
@@ -124,18 +134,13 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     }
 
     public void drawDebug(Graphics2D g_) {
+        //You have to create a seperate graphics context, because otherwise it wont draw
         Graphics2D g = (Graphics2D) g_.create();
+
         if (renderer != null && map != null) {
-
-            //You have to create a seperate graphics context, because otherwise it wont draw
-
             for (int i = 0; i < map.getLayerCount(); i++) {
                 TileLayer tileLayer = (TileLayer) map.getLayer(i);
-                if (getPlayer() != null) {
-                    int posX = ((Game.GAME_WIDTH / 2) - (tileLayer.getTileAt(0, 0).getWidth() / 2)) - (getPlayer().getEntityX() * 32);
-                    int posY = ((Game.GAME_HEIGHT / 2) - (tileLayer.getTileAt(0, 0).getHeight() / 2)) - (getPlayer().getEntityY() * 32);
-                    g.translate(getXOffset() + posX, getYOffset() + posY);
-                }
+                g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
 
                 renderer.paintTileLayer(g, tileLayer);
             }
@@ -149,42 +154,21 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     private void drawEntitiesDebug(Graphics2D g) {
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
-            if (e.socketId != getSocket().id()) {
-                //int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
-                //int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
-                e.drawDebug(g);
-            }
-        }
-
-        if (getPlayer() != null) {
-            int posX = (Game.GAME_WIDTH / 2) - (getPlayer().width / 2);
-            int posY = (Game.GAME_HEIGHT / 2) - (getPlayer().height / 2);
-            //BufferedImage img = image.getSubimage(posX, posY, getPlayer().width, getPlayer().height);
-            //Graphics2D g = (Graphics2D) img.getGraphics();
-            //int[] entPixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
-            //getPlayer().draw(entPixels, img, 0, width);
-            getPlayer().drawGraphics(g);
+                e.drawGraphics(g);
         }
     }
 
     private void drawEntities(Graphics2D g) {
-        //Graphics2D g = (Graphics2D) image.getGraphics();
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
             if (e.socketId != getSocket().id()) {
-                int posX = ((Game.GAME_WIDTH / 2) - (e.width / 2));
-                int posY = ((Game.GAME_HEIGHT / 2) - (e.height / 2));
                 e.drawGraphics(g);
             }
-
         }
 
-        if (getPlayer() != null) {
-            int posX = (Game.GAME_WIDTH / 2) - (getPlayer().width / 2);
-            int posY = (Game.GAME_HEIGHT / 2) - (getPlayer().height / 2);
+        /*if (getPlayer() != null) {
             getPlayer().drawGraphics(g);
-        }
-        //g.dispose();
+        }*/
     }
 
     int XYtoIndex(int x, int y) {
@@ -213,8 +197,8 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
             File f = new File("./res/levels");
             map = new TMXMapReader().readMap(Screen.class.getResourceAsStream((String) objects[0]), f.getCanonicalPath());
 
-            width = map.getTileHeightMax();
-            height = map.getTileHeightMax();
+            tileWidth = map.getTileHeightMax();
+            tileHeight = map.getTileHeightMax();
             //System.out.println("Width: " + width + ", height: " + height);
         } catch (Exception e) {
             e.printStackTrace();
@@ -224,7 +208,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     }
 
     /* ANIMATION STUFF */
-    @Override
+    /*@Override
     public void resetAnimation() {
         progress = 0;
         d = null;
@@ -308,5 +292,5 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     @Override
     public boolean shouldAnimate() {
         return getAnimationDirection() != null;
-    }
+    }*/
 }

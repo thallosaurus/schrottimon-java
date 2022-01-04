@@ -45,6 +45,7 @@ public class Animation implements Renderable, Runnable {
 
         for (int i = 0; i < animationQueue.size(); i++) {
             Animatable a = animationQueue.get(i);
+            //a.initAnimation()
             a.setProgress(delta);
 
             if (a.getProgress() > (double) a.getAnimationDuration()) {
@@ -67,11 +68,12 @@ public class Animation implements Renderable, Runnable {
         }*/
     }
 
-    public static void scheduleUpdate(Animatable a, Direction d, int duration) {
+    public static void scheduleUpdate(Animatable a, Direction d, double durationInSeconds) {
         a.setAnimationDirection(d);
 
-        //a.setAnimationDuration(duration);
+        a.setAnimationDuration((int) (durationInSeconds * 60));
         animationQueue.add(a);
+        a.initAnimation(d);
         System.out.println("Did it call the screen? " + animationQueue.size());
     }
 

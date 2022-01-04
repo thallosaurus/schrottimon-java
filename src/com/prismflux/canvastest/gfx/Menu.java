@@ -19,7 +19,7 @@ public class Menu implements Renderable, KeyListener {
     @Override
     public void drawDebug(Graphics2D g) {
         if (show) {
-            g.setColor(Color.GRAY);
+            g.setColor(Color.YELLOW);
 
             g.drawString("Hello", 50, 50);
 

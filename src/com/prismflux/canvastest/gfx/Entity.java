@@ -14,6 +14,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Timer;
 
 import static com.prismflux.canvastest.net.SocketConnection.getSocket;
 
@@ -82,10 +84,11 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     @Override
     public void drawDebug(Graphics2D g) {
-        //Graphics g = image.getGraphics();
-        g.setColor(new Color(127, 127, 255, 127));
-        g.fillRect(0, 0, image.getWidth(), image.getHeight());
-        //g.dispose();
+        Graphics2D g_ = (Graphics2D) image.getGraphics();
+        g_.translate(32, yOffset);
+        g_.setColor(new Color(127, 127, 255, 127));
+        g_.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g_.dispose();
     }
 
     protected boolean canWalkThere(int x, int y) {
@@ -106,7 +109,15 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     @Override
     public void drawGraphics(Graphics2D g) {
-        g.drawImage(getSpriteBuffer(), null, this.entityX * width, this.entityY * width);
+        Graphics2D g_ = (Graphics2D) g.create();
+        g_.translate(getXOffset(), getYOffset());
+        g_.drawImage(getSpriteBuffer(), null, this.entityX * width, this.entityY * width);
+        g_.dispose();
+        /*Graphics2D g_ = (Graphics2D) image.getGraphics();
+        g_.translate(32, yOffset);
+        g_.setColor(new Color(127, 127, 255, 127));
+        g_.fillRect(0, 0, image.getWidth(), image.getHeight());
+        //g_.dispose();*/
     }
 
     @Override
@@ -114,18 +125,19 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     }
 
-    public int[] getSprite() {
+    /*public int[] getSprite() {
         int[] p = new int[32 * 32];
         image.getRGB(64, 0, 32, 32, p, 0, 32);
 
         return p;
-    }
+    }*/
 
     public BufferedImage getSpriteBuffer() {
-        int howLongIsOneSubFrame = duration / 25;
-        int currentTileY = shouldAnimate() ? ((int) howLongIsOneSubFrame): 0;
+        int howLongIsOneSubFrame = shouldAnimate() ? (duration - (int) getProgress()) % (duration / 4) : 0;
+        //System.out.println("How long is one sub frame? " + howLongIsOneSubFrame);
+        //int currentTileY = shouldAnimate() ? ((int) howLongIsOneSubFrame): 0;
 
-        return image.getSubimage(this.direction.ordinal() * width, currentTileY, 32, 32);
+        return image.getSubimage(this.direction.ordinal() * width, /*howLongIsOneSubFrame*/0, 32, 32);
     }
 
     protected void setPosition(int x, int y) {
@@ -138,11 +150,11 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         String id = objects[0].toString();
 
         if (id.equals(this.socketId)) {
-            System.out.println("playermove Update for " + this.socketId + "(Sent ID: " + id + ")");
+            System.out.println("playermove Update for " + this.socketId + "(Sent ID: " + id + "), Direction: " + objects[3].toString() + ", Running: " + objects[4]);
             //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
             setDirection(Direction.values()[Integer.parseInt(objects[3].toString())]);
 
-            Animation.scheduleUpdate(this, Direction.values()[Integer.parseInt(objects[3].toString())], 64);
+            Animation.scheduleUpdate(this, Direction.values()[Integer.parseInt(objects[3].toString())], 0.5);
 
             setPosition((int) objects[1], (int) objects[2]);
             //System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
@@ -155,6 +167,10 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     private int yOffset = 0;
     private double animationDelta = 0;
     private int duration = -1;
+    private boolean shouldAnimate = false;
+
+    private int xOffsetPixel = 0;
+    private int yOffsetPixel = 0;
 
     @Override
     public void resetAnimation() {
@@ -162,24 +178,28 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         duration = -1;
         xOffset = 0;
         yOffset = 0;
+        xOffsetPixel = 0;
+        yOffsetPixel = 0;
+        shouldAnimate = false;
     }
 
     @Override
     public void updateOffsets() {
         switch (getAnimationDirection()) {
             case UP:
-                xOffset = (int) ((getProgress() / getAnimationDuration()) * 64);
+                yOffset = ((int) ((getProgress() / getAnimationDuration()) * height) * -1) + getyOffsetPixel();
                 break;
             case DOWN:
-                xOffset = (int) ((getProgress() / getAnimationDuration()) * 64) * -1;
+                yOffset = ((int) ((getProgress() / getAnimationDuration()) * height)) + getyOffsetPixel();
                 break;
             case LEFT:
-                yOffset = (int) ((getProgress() / getAnimationDuration()) * 64);
+                xOffset = ((int) ((getProgress() / getAnimationDuration()) * width) * -1) + getxOffsetPixel();
                 break;
             case RIGHT:
-                yOffset = (int) ((getProgress() / getAnimationDuration()) * 64) * -1;
+                xOffset = ((int) ((getProgress() / getAnimationDuration()) * width)) + getxOffsetPixel();
                 break;
         }
+        //yOffset = 32;
     }
 
     @Override
@@ -226,5 +246,31 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     @Override
     public boolean shouldAnimate() {
         return duration != -1;
+    }
+
+    @Override
+    public void initAnimation(Direction d) {
+        switch (d) {
+            case DOWN:
+                yOffsetPixel = -1;
+                break;
+            case UP:
+                yOffsetPixel = 1;
+                break;
+            case LEFT:
+                xOffsetPixel = 1;
+                break;
+            case RIGHT:
+                xOffsetPixel = -1;
+                break;
+        }
+    }
+
+    public int getxOffsetPixel() {
+        return xOffsetPixel * width;
+    }
+
+    public int getyOffsetPixel() {
+        return yOffsetPixel * height;
     }
 }

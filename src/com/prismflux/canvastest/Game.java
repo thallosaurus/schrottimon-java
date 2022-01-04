@@ -130,11 +130,6 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
 
     public void tick(double delta) {
         tickCount++;
-
-        /*for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = i + tickCount;
-        }*/
-
         for (int i = 0; i < Game.renderQueue.size(); i++) {
             Game.renderQueue.get(i).update(delta);
         }
@@ -158,8 +153,6 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
                 Game.renderQueue.get(i).drawGraphics(g);
             }
         }
-
-        //Graphics g = bs.getDrawGraphics();
 
         g.drawImage(image, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT * SCALE, null);
 

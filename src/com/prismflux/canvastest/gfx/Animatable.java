@@ -16,4 +16,6 @@ public interface Animatable {
     public double getProgress();
 
     public boolean shouldAnimate();
+
+    public void initAnimation(Direction d);
 }

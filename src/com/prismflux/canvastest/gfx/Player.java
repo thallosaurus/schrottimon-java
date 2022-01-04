@@ -14,9 +14,11 @@ public class Player extends Entity implements KeyListener {
     public final boolean isPlayer = true;
     private Screen parentScreen = null;
 
+    private boolean running = false;
+
     public Player(Socket socket, Map map, Screen s, int x, int y) {
         super(getSocket(), getSocket().id(), map, "/entities/Character.png", x, y);
-        System.out.println("I am the player!");
+        //System.out.println("I am the player!");
         parentScreen = s;
 
         InputHandler.keyListeners.add(this);
@@ -27,34 +29,33 @@ public class Player extends Entity implements KeyListener {
         setDirection(Direction.UP);
         if (this.canWalkThere(getEntityX(), getEntityY() - 1)) {
             //entityY--;
-            getSocket().emit("moveTo", getEntityX(), getEntityY() - 1);
+            getSocket().emit("moveTo", getEntityX(), getEntityY() - 1, running);
         }
     }
 
     protected void moveDown() {
         //System.out.println("walk down? " + this.canWalkThere(this.entityX, this.entityY + 1));
         setDirection(Direction.DOWN);
-        if (this.canWalkThere(getEntityX(), getEntityY() + 1)) {
+        //if (this.canWalkThere(getEntityX(), getEntityY() + 1)) {
             //entityY++;
-            getSocket().emit("moveTo", getEntityX(), getEntityY() + 1);
-        }
+            getSocket().emit("moveTo", getEntityX(), getEntityY() + 1, running);
+        //}
     }
 
     protected void moveLeft() {
         setDirection(Direction.LEFT);
-        Animation.scheduleUpdate(this, Direction.LEFT, 20);
-        if (this.canWalkThere(getEntityX() - 1, getEntityY())) {
-            //entityX--;
-            getSocket().emit("moveTo", getEntityX() - 1, getEntityY());
-        }
+
+        //if (this.canWalkThere(getEntityX() - 1, getEntityY())) {
+            getSocket().emit("moveTo", getEntityX() - 1, getEntityY(), running);
+        //}
     }
 
     protected void moveRight() {
         setDirection(Direction.RIGHT);
-        if (this.canWalkThere(getEntityX() + 1, getEntityY())) {
+        //if (this.canWalkThere(getEntityX() + 1, getEntityY())) {
             //entityX++;
-            getSocket().emit("moveTo", getEntityX() + 1, getEntityY());
-        }
+            getSocket().emit("moveTo", getEntityX() + 1, getEntityY(), running);
+        //}
     }
 
     /*@Override
@@ -68,6 +69,11 @@ public class Player extends Entity implements KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
+        running = false;
+        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+                running = true;
+        }
+
         switch (e.getKeyChar()) {
             case 'a':
                 //left
@@ -99,29 +105,15 @@ public class Player extends Entity implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_SHIFT:
+                running = true;
+                break;
+        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
 
-    }
-
-    @Override
-    public void call(Object... objects) {
-        //String id = objects[0].toString();
-
-        //if (id.equals(this.socketId)) {
-        //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
-        int dir = Integer.parseInt(objects[3].toString());
-
-        //System.out.println("Down?" + dir);
-        //setDirection(Direction.values()[dir]);
-
-        //parentScreen.setDirection(Direction.values()[Integer.parseInt(objects[3].toString())]);
-        Animation.scheduleUpdate(parentScreen, direction, 64);
-        //setPosition((int) objects[1], (int) objects[2]);
-        //System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
-        super.call(objects);
     }
 }
