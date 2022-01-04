@@ -71,7 +71,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     }
 
     public void onUnload() {
-        
+
     }
 
     @Override
@@ -105,7 +105,18 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         //System.out.println("How long is one sub frame? " + howLongIsOneSubFrame);
         //int currentTileY = shouldAnimate() ? ((int) howLongIsOneSubFrame): 0;
 
-        return image.getSubimage(this.direction.ordinal() * width, /*howLongIsOneSubFrame*/0, 32, 32);
+        int y = 0;
+        if (shouldAnimate()) {
+            int subFrameDuration = duration;
+            int prog = ((int) getProgress()) % subFrameDuration * 10;
+            y = 1 + ((int) prog / 100);
+
+            //y = prog % (subFrameDuration * 100);
+            //System.out.println(y + ", " + prog + ", " + subFrameDuration);
+        }
+
+        //y * height
+        return image.getSubimage(this.direction.ordinal() * width, y * width, 32, 32);
     }
 
     protected void setPosition(int x, int y) {
@@ -168,7 +179,6 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
                 xOffset = ((int) ((getProgress() / getAnimationDuration()) * width)) + getxOffsetPixel();
                 break;
         }
-        //yOffset = 32;
     }
 
     @Override
