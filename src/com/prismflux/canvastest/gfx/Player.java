@@ -3,8 +3,8 @@ package com.prismflux.canvastest.gfx;
 import com.prismflux.canvastest.InputHandler;
 import io.socket.client.Socket;
 import org.mapeditor.core.Map;
-
-import static com.prismflux.canvastest.net.SocketConnection.getSocket;
+import org.mapeditor.core.MapObject;
+import org.mapeditor.core.ObjectGroup;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -54,10 +54,7 @@ public class Player extends Entity implements KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
-        running = false;
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-            running = true;
-        }
+        running = e.getKeyCode() == KeyEvent.VK_SHIFT;
 
         switch (e.getKeyChar()) {
             case 'a':
@@ -79,6 +76,13 @@ public class Player extends Entity implements KeyListener {
                 break;
             case 'u':
                 getSocket().emit("room", "/unbenannt.tmx");
+                break;
+            case 'z':
+                MapObject o = parentScreen.getTeleportForTileUnderPlayer(getEntityX(), getEntityY());
+                if (o != null) {
+                    //System.out.println(o.getProperties().getProperty("target"));
+                    getSocket().emit("room", o.getProperties().getProperty("target"));
+                }
                 break;
         }
     }

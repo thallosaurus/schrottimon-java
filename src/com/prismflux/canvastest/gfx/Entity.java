@@ -4,20 +4,10 @@ import com.prismflux.canvastest.net.SocketConnection;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import org.mapeditor.core.Map;
-import org.mapeditor.core.TileLayer;
-import org.tiledreader.TiledLayer;
-
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Timer;
-
-import static com.prismflux.canvastest.net.SocketConnection.getSocket;
 
 public class Entity extends SocketConnection implements Renderable, Emitter.Listener, Animatable {
 
@@ -25,10 +15,13 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     private int entityY;
     public int width = 32;
     public int height = 32;
-    //private Level level;
-    private String path;
+    private final String path;
 
-    private Map map;
+    public Map getMap() {
+        return map;
+    }
+
+    private final Map map;
 
     public final boolean isPlayer = false;
 
@@ -101,21 +94,12 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     }
 
     public BufferedImage getSpriteBuffer() {
-        int howLongIsOneSubFrame = shouldAnimate() ? (duration - (int) getProgress()) % (duration / 4) : 0;
-        //System.out.println("How long is one sub frame? " + howLongIsOneSubFrame);
-        //int currentTileY = shouldAnimate() ? ((int) howLongIsOneSubFrame): 0;
-
         int y = 0;
         if (shouldAnimate()) {
             int subFrameDuration = duration;
             int prog = ((int) getProgress()) % subFrameDuration * 10;
-            y = 1 + ((int) prog / 100);
-
-            //y = prog % (subFrameDuration * 100);
-            //System.out.println(y + ", " + prog + ", " + subFrameDuration);
+            y = 1 + (prog / 100);
         }
-
-        //y * height
         return image.getSubimage(this.direction.ordinal() * width, y * width, 32, 32);
     }
 

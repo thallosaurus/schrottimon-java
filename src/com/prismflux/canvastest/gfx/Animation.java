@@ -8,7 +8,7 @@ import java.util.ArrayList;
 public class Animation implements Renderable, Runnable {
 
     public static ArrayList<Animatable> animationQueue = new ArrayList<>();
-    private int currentTS = 0;
+    private final int currentTS = 0;
 
     public Animation() {
         Game.addToQueue(this);
@@ -53,8 +53,7 @@ public class Animation implements Renderable, Runnable {
             if (a.getProgress() > (double) a.getAnimationDuration()) {
                 a.resetAnimation();
 
-                int index = animationQueue.indexOf(a);
-                animationQueue.remove(index);
+                animationQueue.remove(a);
             } else {
                 a.updateOffsets();
             }

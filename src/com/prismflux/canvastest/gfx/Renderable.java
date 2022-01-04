@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 
 public interface Renderable {
 
-    public void drawDebug(Graphics2D g);
-    public void drawGraphics(Graphics2D g);
-    public void update(double delta);
+    void drawDebug(Graphics2D g);
+    void drawGraphics(Graphics2D g);
+    void update(double delta);
 }

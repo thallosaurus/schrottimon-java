@@ -3,8 +3,7 @@ package com.prismflux.canvastest.gfx;
 import com.prismflux.canvastest.Game;
 import com.prismflux.canvastest.net.SocketConnection;
 import io.socket.emitter.Emitter;
-import org.mapeditor.core.Map;
-import org.mapeditor.core.TileLayer;
+import org.mapeditor.core.*;
 import org.mapeditor.io.TMXMapReader;
 import org.mapeditor.view.OrthogonalRenderer;
 
@@ -29,10 +28,10 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     private Map map = null;
     private OrthogonalRenderer renderer = null;
 
-    private int clipX = 0;
-    private int clipY = 0;
+    private final int clipX = 0;
+    private final int clipY = 0;
 
-    private ArrayList<Entity> players = new ArrayList<>();
+    private final ArrayList<Entity> players = new ArrayList<>();
 
     public Screen getScreen() {
         return this;
@@ -77,7 +76,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
                     players.remove(index);
                     System.out.println(objects[0] + " left");
                 } else {
-                    System.out.println("index not found for id " + (String) objects[0]);
+                    System.out.println("index not found for id " + objects[0]);
                 }
             }
         });
@@ -110,13 +109,36 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
             for (int i = 0; i < map.getLayerCount(); i++) {
                 TileLayer tileLayer = (TileLayer) map.getLayer(i);
                 g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
-
                 renderer.paintTileLayer(g, tileLayer);
             }
 
             drawEntitiesDebug(g);
 
             g.dispose();
+        }
+    }
+
+    private void drawTileLayers(Graphics2D g) {
+        g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
+        for (int i = 0; i < map.getLayerCount(); i++) {
+
+            try {
+                TileLayer tileLayer = (TileLayer) map.getLayer(i);
+                renderer.paintTileLayer(g, tileLayer);
+            } catch (ClassCastException cce) {
+
+            }
+        }
+    }
+
+    private void drawObjectLayers(Graphics2D g) {
+        for (int i = 0; i < map.getLayerCount(); i++) {
+            try {
+                ObjectGroup og = (ObjectGroup) map.getLayer(i);
+                renderer.paintObjectGroup(g, og);
+            } catch (ClassCastException cce) {
+
+            }
         }
     }
 
@@ -130,15 +152,9 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         Graphics2D g = (Graphics2D) g_.create();
 
         if (renderer != null && map != null) {
-            for (int i = 0; i < map.getLayerCount(); i++) {
-                TileLayer tileLayer = (TileLayer) map.getLayer(i);
-                g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
-
-                renderer.paintTileLayer(g, tileLayer);
-            }
-
+            drawTileLayers(g);
             drawEntities(g);
-
+            drawObjectLayers(g);
             g.dispose();
         }
     }
@@ -146,7 +162,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     private void drawEntitiesDebug(Graphics2D g) {
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
-                e.drawGraphics(g);
+            e.drawGraphics(g);
         }
     }
 
@@ -161,7 +177,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         Player p = null;
 
         for (int i = 0; i < players.size(); i++) {
-            if (getSocket().id().equals(players.get(i).socketId)){
+            if (getSocket().id().equals(players.get(i).socketId)) {
                 p = (Player) players.get(i);
             }
         }
@@ -174,17 +190,48 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     public void call(Object... objects) {
         try {
             File f = new File("./res/levels");
-            URL u = new URL("http://localhost:9000/data/levels" + objects[0].toString());
+            URL u = new URL("http://localhost:9000/data/levels/" + objects[0].toString());
 
             map = new TMXMapReader().readMap(u.openStream(), f.getCanonicalPath());
 
             tileWidth = map.getTileHeightMax();
             tileHeight = map.getTileHeightMax();
-            //System.out.println("Width: " + width + ", height: " + height);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         renderer = new OrthogonalRenderer(map);
+    }
+
+    public MapObject getTeleportForTileUnderPlayer(int x, int y) {
+        ObjectGroup warps = returnWarpLayer();
+        //System.out.println(warps != null ? "warp layer found" : "warp layer not found");
+        MapObject mo = null;
+        if (warps != null) {
+            mo = warps.getObjectNear(x * tileWidth, y * tileHeight, 4);
+            //System.out.println(mo.getProperties().getProperty("target"));
+        }
+
+        return mo;
+    }
+
+    private ObjectGroup returnWarpLayer() {
+        ObjectGroup og_ = null;
+        for (int i = 0; i < map.getLayerCount(); i++) {
+            try {
+                ObjectGroup objectGroup = (ObjectGroup) map.getLayer(i);
+                if (objectGroup.getName().equals("warp")) {
+                    og_ = objectGroup;
+                    //System.out.println(objectGroup.getName());
+                    break;
+                }
+            } catch (ClassCastException cce) {
+
+            }
+        }
+
+        //System.out.println(og_.getName());
+
+        return og_;
     }
 }

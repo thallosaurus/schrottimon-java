@@ -11,7 +11,7 @@ import java.awt.event.KeyListener;
 public class Menu implements Renderable, KeyListener {
 
     private boolean show = false;
-    private JRootPane jrp;
+    private final JRootPane jrp;
 
     public Menu() {
         InputHandler.keyListeners.add(this);
@@ -25,11 +25,11 @@ public class Menu implements Renderable, KeyListener {
     @Override
     public void drawDebug(Graphics2D g) {
         if (show) {
-            //g.setColor(Color.YELLOW);
+            g.setColor(Color.YELLOW);
 
-            //g.drawString("Hello", 50, 50);
+            g.drawString("Hello", 50, 50);
 
-            jrp.paint(g);
+            //jrp.paint(g);
         }
         g.dispose();
     }

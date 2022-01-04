@@ -21,10 +21,10 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     public static final int GAME_WIDTH = 480; //480;
     public static final int GAME_HEIGHT = GAME_WIDTH / 12 * 9;
     public static final int SCALE = 2;
-    private static ArrayList<Renderable> renderQueue = new ArrayList<>();
+    private static final ArrayList<Renderable> renderQueue = new ArrayList<>();
 
-    private BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);
-    private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+    private final BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);
+    private final int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
     public static boolean debug = true;
     private static Game g;
@@ -188,7 +188,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     @Override
     public void keyTyped(KeyEvent e) {
         if (e.getKeyChar() == 't') {
-            this.debug = !this.debug;
+            debug = !debug;
 
             System.out.println("Debug is now " + (debug ? "on" : "off"));
         }
