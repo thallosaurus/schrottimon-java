@@ -3,8 +3,6 @@ package com.prismflux.canvastest.gfx;
 import com.prismflux.canvastest.Game;
 
 import java.awt.*;
-import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class Animation implements Renderable, Runnable {
@@ -16,6 +14,10 @@ public class Animation implements Renderable, Runnable {
         Game.addToQueue(this);
 
         new Thread(this).start();
+    }
+
+    private static boolean isAlreadyInQueue(Animatable a) {
+        return animationQueue.contains(a);
     }
 
     @Override
@@ -69,12 +71,14 @@ public class Animation implements Renderable, Runnable {
     }
 
     public static void scheduleUpdate(Animatable a, Direction d, double durationInSeconds) {
-        a.setAnimationDirection(d);
+        if (!isAlreadyInQueue(a)) {
+            a.setAnimationDirection(d);
 
-        a.setAnimationDuration((int) (durationInSeconds * 60));
-        animationQueue.add(a);
-        a.initAnimation(d);
-        System.out.println("Did it call the screen? " + animationQueue.size());
+            a.setAnimationDuration((int) (durationInSeconds * 60));
+            a.initAnimation(d);
+            animationQueue.add(a);
+        }
+        //System.out.println("Did it call the screen? " + animationQueue.size());
     }
 
     @Override

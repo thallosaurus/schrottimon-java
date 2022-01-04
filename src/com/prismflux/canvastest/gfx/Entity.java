@@ -70,14 +70,6 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         return entityY;
     }
 
-    protected void setEntityX(int x) {
-        entityX = x;
-    }
-
-    protected void setEntityY(int y) {
-        entityY = y;
-    }
-
     public void onUnload() {
         
     }
@@ -91,18 +83,6 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         g_.dispose();
     }
 
-    protected boolean canWalkThere(int x, int y) {
-        ArrayList<Boolean> states = new ArrayList<>();
-
-        for (int i = 0; i < map.getLayerCount(); i++) {
-            if (((TileLayer) map.getLayer(i)).getTileAt(x, y) == null) {
-                states.add(true);
-            }
-        }
-
-        return states.size() == 0;
-    }
-
     protected void setDirection(Direction d) {
         direction = d;
     }
@@ -113,24 +93,12 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         g_.translate(getXOffset(), getYOffset());
         g_.drawImage(getSpriteBuffer(), null, this.entityX * width, this.entityY * width);
         g_.dispose();
-        /*Graphics2D g_ = (Graphics2D) image.getGraphics();
-        g_.translate(32, yOffset);
-        g_.setColor(new Color(127, 127, 255, 127));
-        g_.fillRect(0, 0, image.getWidth(), image.getHeight());
-        //g_.dispose();*/
     }
 
     @Override
     public void update(double delta) {
 
     }
-
-    /*public int[] getSprite() {
-        int[] p = new int[32 * 32];
-        image.getRGB(64, 0, 32, 32, p, 0, 32);
-
-        return p;
-    }*/
 
     public BufferedImage getSpriteBuffer() {
         int howLongIsOneSubFrame = shouldAnimate() ? (duration - (int) getProgress()) % (duration / 4) : 0;
@@ -171,6 +139,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     private int xOffsetPixel = 0;
     private int yOffsetPixel = 0;
+    private Direction animationDirection = null;
 
     @Override
     public void resetAnimation() {
@@ -214,12 +183,12 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     @Override
     public Direction getAnimationDirection() {
-        return direction;
+        return animationDirection;
     }
 
     @Override
     public void setAnimationDirection(Direction dir) {
-        direction = dir;
+        animationDirection = dir;
     }
 
     @Override
@@ -250,6 +219,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     @Override
     public void initAnimation(Direction d) {
+        shouldAnimate = true;
         switch (d) {
             case DOWN:
                 yOffsetPixel = -1;

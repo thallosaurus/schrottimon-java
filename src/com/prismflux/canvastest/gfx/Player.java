@@ -18,60 +18,45 @@ public class Player extends Entity implements KeyListener {
 
     public Player(Socket socket, Map map, Screen s, int x, int y) {
         super(getSocket(), getSocket().id(), map, "/entities/Character.png", x, y);
-        //System.out.println("I am the player!");
         parentScreen = s;
 
         InputHandler.keyListeners.add(this);
     }
 
     protected void moveUp() {
-        //System.out.println("move up");
-        setDirection(Direction.UP);
-        if (this.canWalkThere(getEntityX(), getEntityY() - 1)) {
-            //entityY--;
+        if (!this.shouldAnimate()) {
+            setDirection(Direction.UP);
             getSocket().emit("moveTo", getEntityX(), getEntityY() - 1, running);
         }
     }
 
     protected void moveDown() {
-        //System.out.println("walk down? " + this.canWalkThere(this.entityX, this.entityY + 1));
-        setDirection(Direction.DOWN);
-        //if (this.canWalkThere(getEntityX(), getEntityY() + 1)) {
-            //entityY++;
+        if (!this.shouldAnimate()) {
+            setDirection(Direction.DOWN);
             getSocket().emit("moveTo", getEntityX(), getEntityY() + 1, running);
-        //}
+        }
     }
 
     protected void moveLeft() {
-        setDirection(Direction.LEFT);
-
-        //if (this.canWalkThere(getEntityX() - 1, getEntityY())) {
+        if (!this.shouldAnimate()) {
+            setDirection(Direction.LEFT);
+            System.out.println("Is animating?" + this.shouldAnimate());
             getSocket().emit("moveTo", getEntityX() - 1, getEntityY(), running);
-        //}
+        }
     }
 
     protected void moveRight() {
-        setDirection(Direction.RIGHT);
-        //if (this.canWalkThere(getEntityX() + 1, getEntityY())) {
-            //entityX++;
+        if (!this.shouldAnimate()) {
+            setDirection(Direction.RIGHT);
             getSocket().emit("moveTo", getEntityX() + 1, getEntityY(), running);
-        //}
-    }
-
-    /*@Override
-    public void moveLeft() {
-        if (parentScreen != null) {
-            System.out.println("parentscreen != null");
-            Animation.scheduleUpdate(parentScreen, Direction.RIGHT, 250);
         }
-        //super.moveLeft();
-    }*/
+    }
 
     @Override
     public void keyTyped(KeyEvent e) {
         running = false;
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-                running = true;
+            running = true;
         }
 
         switch (e.getKeyChar()) {
@@ -93,7 +78,7 @@ public class Player extends Entity implements KeyListener {
                 moveDown();
                 break;
             case 'u':
-                getSocket().emit("room", "/levels/unbenannt.tmx");
+                getSocket().emit("room", "/unbenannt.tmx");
                 break;
         }
     }

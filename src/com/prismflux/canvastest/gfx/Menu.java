@@ -3,6 +3,7 @@ package com.prismflux.canvastest.gfx;
 import com.prismflux.canvastest.Game;
 import com.prismflux.canvastest.InputHandler;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -10,20 +11,25 @@ import java.awt.event.KeyListener;
 public class Menu implements Renderable, KeyListener {
 
     private boolean show = false;
+    private JRootPane jrp;
 
     public Menu() {
         InputHandler.keyListeners.add(this);
         Game.addToQueue(this);
+
+        jrp = new JRootPane();
+        jrp.add(new JLabel("Hello"));
+        jrp.setVisible(true);
     }
 
     @Override
     public void drawDebug(Graphics2D g) {
         if (show) {
-            g.setColor(Color.YELLOW);
+            //g.setColor(Color.YELLOW);
 
-            g.drawString("Hello", 50, 50);
+            //g.drawString("Hello", 50, 50);
 
-
+            jrp.paint(g);
         }
         g.dispose();
     }
