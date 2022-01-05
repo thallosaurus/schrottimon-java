@@ -1,6 +1,7 @@
 package com.prismflux.canvastest;
 
 import com.prismflux.canvastest.gfx.*;
+import com.prismflux.canvastest.gfx.Menu;
 import com.prismflux.canvastest.net.SocketConnection;
 
 import javax.swing.*;
@@ -20,10 +21,10 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     public static final int GAME_WIDTH = 480; //480;
     public static final int GAME_HEIGHT = GAME_WIDTH / 12 * 9;
     public static final int SCALE = 2;
-    private static ArrayList<Renderable> renderQueue = new ArrayList<>();
+    private static final ArrayList<Renderable> renderQueue = new ArrayList<>();
 
-    private BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);
-    private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+    private final BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);
+    private final int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
 
     public static boolean debug = true;
     private static Game g;
@@ -31,7 +32,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     //private Screen screen;
 
     public static void main(String[] args) {
-	// write your code here
+        // write your code here
         g = new Game();
         g.startEntry();
     }
@@ -43,10 +44,11 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     public void init() {
         //screen =
         //new SocketConnection(this);
+        addToQueue(this);
         new InputHandler(this);
         new Screen(GAME_WIDTH, GAME_HEIGHT /*new Level("/levels/unbenannt.tmx")*/);
+        new Menu(this);
         new Animation();
-        addToQueue(this);
     }
 
     private synchronized void startEntry() {
@@ -128,13 +130,8 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
 
     public void tick(double delta) {
         tickCount++;
-
-        /*for (int i = 0; i < pixels.length; i++) {
-            pixels[i] = i + tickCount;
-        }*/
-
         for (int i = 0; i < Game.renderQueue.size(); i++) {
-                Game.renderQueue.get(i).update(delta);
+            Game.renderQueue.get(i).update(delta);
         }
     }
 
@@ -145,17 +142,19 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
             return;
         }
 
+        Graphics2D g = (Graphics2D) bs.getDrawGraphics();
+        g.scale(SCALE, SCALE);
+        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+
         for (int i = 0; i < Game.renderQueue.size(); i++) {
             if (debug) {
-                Game.renderQueue.get(i).drawDebug(pixels, image, 0, WIDTH);
+                Game.renderQueue.get(i).drawDebug(g);
             } else {
-                Game.renderQueue.get(i).draw(pixels, image, 0, WIDTH);
+                Game.renderQueue.get(i).drawGraphics(g);
             }
         }
 
-        Graphics g = bs.getDrawGraphics();
-
-        g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
+        g.drawImage(image, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT * SCALE, null);
 
         g.dispose();
         bs.show();
@@ -166,23 +165,18 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     }
 
     @Override
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
+    public void drawDebug(Graphics2D g) {
 
-    }
+        g.setColor(Color.GRAY);
+        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
 
-    @Override
-    public void draw(int[] pixels, BufferedImage image, int offset, int row) {
-        Graphics g = image.getGraphics();
-
-        Font font = new Font("Serif", Font.PLAIN, 36);
-        g.setFont(font);
-
-        g.drawString("Hello", 0, 0);
-        g.dispose();
     }
 
     @Override
     public void drawGraphics(Graphics2D g) {
+        g.setColor(Color.GRAY);
+        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
+        g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
 
     }
 
@@ -194,7 +188,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     @Override
     public void keyTyped(KeyEvent e) {
         if (e.getKeyChar() == 't') {
-            this.debug = !this.debug;
+            debug = !debug;
 
             System.out.println("Debug is now " + (debug ? "on" : "off"));
         }

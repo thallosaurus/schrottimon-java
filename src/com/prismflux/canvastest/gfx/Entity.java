@@ -4,18 +4,10 @@ import com.prismflux.canvastest.net.SocketConnection;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import org.mapeditor.core.Map;
-import org.mapeditor.core.TileLayer;
-import org.tiledreader.TiledLayer;
-
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-
-import static com.prismflux.canvastest.net.SocketConnection.getSocket;
 
 public class Entity extends SocketConnection implements Renderable, Emitter.Listener, Animatable {
 
@@ -23,10 +15,13 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     private int entityY;
     public int width = 32;
     public int height = 32;
-    //private Level level;
-    private String path;
+    private final String path;
 
-    private Map map;
+    public Map getMap() {
+        return map;
+    }
+
+    private final Map map;
 
     public final boolean isPlayer = false;
 
@@ -34,7 +29,7 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     public String socketId = null;
 
-    private Direction direction = Direction.DOWN;
+    protected Direction direction = Direction.DOWN;
 
     public Entity(Socket socket, String socketId, Map map, String path, int x, int y) {
         //this.level = level;
@@ -68,85 +63,30 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         return entityY;
     }
 
-    protected void setEntityX(int x) {
-        entityX = x;
-    }
-
-    protected void setEntityY(int y) {
-        entityY = y;
-    }
-
     public void onUnload() {
-        
-    }
-
-    protected void moveUp() {
-        System.out.println("move up");
-        setDirection(Direction.UP);
-        if (this.canWalkThere(this.entityX, this.entityY - 1)) {
-            //entityY--;
-            getSocket().emit("moveTo", entityX, entityY - 1);
-        }
-    }
-
-    protected void moveDown() {
-        //System.out.println("walk down? " + this.canWalkThere(this.entityX, this.entityY + 1));
-        setDirection(Direction.DOWN);
-        if (this.canWalkThere(this.entityX, this.entityY + 1)) {
-            //entityY++;
-            getSocket().emit("moveTo", entityX, entityY + 1);
-        }
-    }
-
-    protected void moveLeft() {
-        setDirection(Direction.LEFT);
-        Animation.scheduleUpdate(this, Direction.LEFT, 20);
-        if (this.canWalkThere(this.entityX - 1, this.entityY)) {
-            //entityX--;
-            getSocket().emit("moveTo", entityX - 1, entityY);
-        }
-    }
-
-    protected void moveRight() {
-        setDirection(Direction.RIGHT);
-        if (this.canWalkThere(this.entityX + 1, this.entityY)) {
-            //entityX++;
-            getSocket().emit("moveTo", entityX + 1, entityY);
-        }
+        System.out.println("Unregistering Socket Events");
+        unregisterSocketListener("playermove", this);
     }
 
     @Override
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
-        Graphics g = image.getGraphics();
-        g.setColor(new Color(127, 127, 255, 127));
-        g.fillRect(0, 0, image.getWidth(), image.getHeight());
-        g.dispose();
+    public void drawDebug(Graphics2D g) {
+        Graphics2D g_ = (Graphics2D) image.getGraphics();
+        g_.translate(32, yOffset);
+        g_.setColor(new Color(127, 127, 255, 127));
+        g_.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g_.dispose();
     }
 
-    private boolean canWalkThere(int x, int y) {
-        ArrayList<Boolean> states = new ArrayList<>();
-
-        for (int i = 0; i < map.getLayerCount(); i++) {
-            if (((TileLayer) map.getLayer(i)).getTileAt(x, y) == null) {
-                states.add(true);
-            }
-        }
-
-        return states.size() == 0;
-    }
-
-    private void setDirection(Direction d) {
+    protected void setDirection(Direction d) {
         direction = d;
     }
 
     @Override
-    public void draw(int[] pixels, BufferedImage image, int offset, int row) {
-        image.setRGB(0, 0, width, height, getSprite(), 0, height);
-    }
-
-    @Override
     public void drawGraphics(Graphics2D g) {
-        g.drawImage(getSpriteBuffer(), null, 0, 0 );
+        Graphics2D g_ = (Graphics2D) g.create();
+        g_.translate(getXOffset(), getYOffset());
+        g_.drawImage(getSpriteBuffer(), null, this.entityX * width, this.entityY * width);
+        g_.dispose();
     }
 
     @Override
@@ -154,20 +94,17 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     }
 
-    public int[] getSprite() {
-        int[] p = new int[32 * 32];
-        image.getRGB(64, 0, 32, 32, p, 0, 32);
-
-        return p;
-    }
-
     public BufferedImage getSpriteBuffer() {
-        int howLongIsOneSubFrame = duration;
-        int currentTileY = shouldAnimate() ? ((int) animationDelta % howLongIsOneSubFrame): 0;
-        return image.getSubimage(this.direction.ordinal() * width, currentTileY, 32, 32);
+        int y = 0;
+        if (shouldAnimate()) {
+            int subFrameDuration = duration;
+            int prog = ((int) getProgress()) % subFrameDuration * 10;
+            y = 1 + (prog / 100);
+        }
+        return image.getSubimage(this.direction.ordinal() * width, y * width, 32, 32);
     }
 
-    private void setPosition(int x, int y) {
+    protected void setPosition(int x, int y) {
         this.entityX = x;
         this.entityY = y;
     }
@@ -177,7 +114,11 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         String id = objects[0].toString();
 
         if (id.equals(this.socketId)) {
+            System.out.println("playermove Update for " + this.socketId + "(Sent ID: " + id + "), Direction: " + objects[3].toString() + ", Running: " + objects[4]);
             //System.out.println("Move Update for " + id + ", this socket id: " + this.socketId);
+            setDirection(Direction.values()[Integer.parseInt(objects[3].toString())]);
+
+            Animation.scheduleUpdate(this, Direction.values()[Integer.parseInt(objects[3].toString())], 0.5);
 
             setPosition((int) objects[1], (int) objects[2]);
             //System.out.println(this.socketId + " is now at (" + entityX + "/" + entityY + ")");
@@ -190,6 +131,11 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     private int yOffset = 0;
     private double animationDelta = 0;
     private int duration = -1;
+    private boolean shouldAnimate = false;
+
+    private int xOffsetPixel = 0;
+    private int yOffsetPixel = 0;
+    private Direction animationDirection = null;
 
     @Override
     public void resetAnimation() {
@@ -197,22 +143,25 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
         duration = -1;
         xOffset = 0;
         yOffset = 0;
+        xOffsetPixel = 0;
+        yOffsetPixel = 0;
+        shouldAnimate = false;
     }
 
     @Override
     public void updateOffsets() {
         switch (getAnimationDirection()) {
             case UP:
-                xOffset = (int) ((getProgress() / getAnimationDuration()) * 64);
+                yOffset = ((int) ((getProgress() / getAnimationDuration()) * height) * -1) + getyOffsetPixel();
                 break;
             case DOWN:
-                xOffset = (int) ((getProgress() / getAnimationDuration()) * 64) * -1;
+                yOffset = ((int) ((getProgress() / getAnimationDuration()) * height)) + getyOffsetPixel();
                 break;
             case LEFT:
-                yOffset = (int) ((getProgress() / getAnimationDuration()) * 64);
+                xOffset = ((int) ((getProgress() / getAnimationDuration()) * width) * -1) + getxOffsetPixel();
                 break;
             case RIGHT:
-                yOffset = (int) ((getProgress() / getAnimationDuration()) * 64) * -1;
+                xOffset = ((int) ((getProgress() / getAnimationDuration()) * width)) + getxOffsetPixel();
                 break;
         }
     }
@@ -229,12 +178,12 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     @Override
     public Direction getAnimationDirection() {
-        return direction;
+        return animationDirection;
     }
 
     @Override
     public void setAnimationDirection(Direction dir) {
-        direction = dir;
+        animationDirection = dir;
     }
 
     @Override
@@ -251,7 +200,6 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     public void setProgress(double deltaTick) {
         animationDelta += deltaTick;
         updateOffsets();
-        System.out.println("Animation Progrss: " + animationDelta);
     }
 
     @Override
@@ -262,5 +210,32 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     @Override
     public boolean shouldAnimate() {
         return duration != -1;
+    }
+
+    @Override
+    public void initAnimation(Direction d) {
+        shouldAnimate = true;
+        switch (d) {
+            case DOWN:
+                yOffsetPixel = -1;
+                break;
+            case UP:
+                yOffsetPixel = 1;
+                break;
+            case LEFT:
+                xOffsetPixel = 1;
+                break;
+            case RIGHT:
+                xOffsetPixel = -1;
+                break;
+        }
+    }
+
+    public int getxOffsetPixel() {
+        return xOffsetPixel * width;
+    }
+
+    public int getyOffsetPixel() {
+        return yOffsetPixel * height;
     }
 }

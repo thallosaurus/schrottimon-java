@@ -24,7 +24,7 @@ public class SpriteSheet {
 
     private TileSet tileset;
 
-    private static BufferedImage image = null;
+    private static final BufferedImage image = null;
 
     public SpriteSheet(String path, int sprWidth, int sprHeight) {
         this(path);

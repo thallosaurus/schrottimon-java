@@ -3,14 +3,12 @@ package com.prismflux.canvastest.gfx;
 import com.prismflux.canvastest.Game;
 
 import java.awt.*;
-import java.awt.image.BufferStrategy;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class Animation implements Renderable, Runnable {
 
     public static ArrayList<Animatable> animationQueue = new ArrayList<>();
-    private int currentTS = 0;
+    private final int currentTS = 0;
 
     public Animation() {
         Game.addToQueue(this);
@@ -18,15 +16,19 @@ public class Animation implements Renderable, Runnable {
         new Thread(this).start();
     }
 
-    @Override
-    public void drawDebug(int[] pixels, BufferedImage image, int offset, int row) {
-
+    private static boolean isAlreadyInQueue(Animatable a) {
+        return animationQueue.contains(a);
     }
 
     @Override
+    public void drawDebug(Graphics2D g) {
+
+    }
+
+    /*@Override
     public void draw(int[] pixels, BufferedImage image, int offset, int row) {
 
-    }
+    }*/
 
     @Override
     public void drawGraphics(Graphics2D g) {
@@ -40,34 +42,31 @@ public class Animation implements Renderable, Runnable {
 
         if (d > 60) {
             d = 0;
-            //System.out.println("Tick");
         }
 
         for (int i = 0; i < animationQueue.size(); i++) {
             Animatable a = animationQueue.get(i);
+            //a.initAnimation()
             a.setProgress(delta);
+
             if (a.getProgress() > (double) a.getAnimationDuration()) {
                 a.resetAnimation();
 
-                int index = animationQueue.indexOf(a);
-                animationQueue.remove(index);
+                animationQueue.remove(a);
+            } else {
+                a.updateOffsets();
             }
-            //animationQueue.get(i).setXOffset(x);
-            //animationQueue.get(i).setYOffset(x);
-
         }
-
-        /*float off = Math.abs((float) Math.sin(delta));
-        for (int i = 0; i < animationQueue.size(); i++) {
-            animationQueue.get(i).setXOffset(off);
-            animationQueue.get(i).setYOffset(off);
-        }*/
     }
 
-    public static void scheduleUpdate(Animatable a, Direction d, int duration) {
-        a.setAnimationDirection(d);
-        a.setAnimationDuration(duration);
-        animationQueue.add(a);
+    public static void scheduleUpdate(Animatable a, Direction d, double durationInSeconds) {
+        if (!isAlreadyInQueue(a)) {
+            a.setAnimationDirection(d);
+
+            a.setAnimationDuration((int) (durationInSeconds * 60));
+            a.initAnimation(d);
+            animationQueue.add(a);
+        }
     }
 
     @Override
@@ -77,11 +76,6 @@ public class Animation implements Renderable, Runnable {
                 Thread.sleep(2);
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
-
-            for (int i = 0; i < animationQueue.size(); i++) {
-                //animationQueue.get(i).setXOffset(x);
-                //animationQueue.get(i).setYOffset(x);
             }
         }
     }

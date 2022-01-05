@@ -13,8 +13,7 @@ public class InputHandler implements KeyListener {
     }
 
     public static void removeKeyListener(KeyListener l) {
-        int index = keyListeners.indexOf(l);
-        keyListeners.remove(index);
+        keyListeners.remove(l);
     }
 
     @Override
