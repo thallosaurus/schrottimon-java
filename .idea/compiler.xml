@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="schrottimon" />
+        <module name="tmxviewer" />
+        <module name="libtiled" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="libtiled" target="1.8" />
+      <module name="schrottimon" target="15" />
+      <module name="tiled-parent" target="1.8" />
+      <module name="tmxviewer" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
