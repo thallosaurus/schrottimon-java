@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CanvasTest.iml" filepath="$PROJECT_DIR$/CanvasTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../tiled/util/java/libtiled-java/libtiled.iml" filepath="$PROJECT_DIR$/../tiled/util/java/libtiled-java/libtiled.iml" />
+      <module fileurl="file://$PROJECT_DIR$/schrottimon.iml" filepath="$PROJECT_DIR$/schrottimon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../tiled/util/java/tiled-parent.iml" filepath="$PROJECT_DIR$/../tiled/util/java/tiled-parent.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../tiled/util/java/tmxviewer-java/tmxviewer.iml" filepath="$PROJECT_DIR$/../tiled/util/java/tmxviewer-java/tmxviewer.iml" />
     </modules>
   </component>
 </project>
