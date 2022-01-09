@@ -1,6 +1,7 @@
 package com.prismflux.schrottimon.gfx;
 
 import com.prismflux.schrottimon.Game;
+import com.prismflux.schrottimon.InputHandler;
 import com.prismflux.schrottimon.net.SocketConnection;
 import io.socket.emitter.Emitter;
 import org.mapeditor.core.*;
@@ -8,13 +9,16 @@ import org.mapeditor.io.TMXMapReader;
 import org.mapeditor.view.OrthogonalRenderer;
 
 import java.awt.*;
+import java.awt.Point;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class Screen extends SocketConnection implements Renderable, Emitter.Listener {
+public class Screen extends SocketConnection implements Renderable, Emitter.Listener, KeyListener {
     public static final int MAP_WIDTH = 32;
-    public static final int MAP_WIDTH_MASK = MAP_WIDTH - 1;
+    //public static final int MAP_WIDTH_MASK = MAP_WIDTH - 1;
 
     public static final int TILE_WIDTH = 32;
     public static final int TILE_HEIGHT = TILE_WIDTH;
@@ -28,11 +32,15 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
     private final ArrayList<Entity> players = new ArrayList<>();
 
+    public boolean useLightMap = false;
+    private LightMap lightMap = null;
+
     public Screen getScreen() {
         return this;
     }
 
     public Screen(int width, int height) {
+        super();
         this.width = width;
         this.height = height;
         this.registerSocketListener("loadlevel", this);
@@ -69,9 +77,13 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         });
 
         Game.addToQueue(this);
+
+        lightMap = new LightMap(this);
+        Game.addToQueue(lightMap);
+        InputHandler.keyListeners.add(this);
     }
 
-    private int getPlayerXWithOffset() {
+    int getPlayerXWithOffset() {
         if (getPlayer() != null) {
             return ((Game.GAME_WIDTH / 2) - (tileWidth / 2) - ((getPlayer().getEntityX() * 32) + getPlayer().getXOffset()));
         } else {
@@ -79,7 +91,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         }
     }
 
-    private int getPlayerYWithOffset() {
+    int getPlayerYWithOffset() {
         if (getPlayer() != null) {
             return ((Game.GAME_HEIGHT / 2) - (tileHeight / 2) - (getPlayer().getEntityY() * 32 + getPlayer().getYOffset()));
         } else {
@@ -92,53 +104,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         //You have to create a seperate graphics context, because otherwise it wont draw
         Graphics2D g = (Graphics2D) g_.create();
 
-        if (renderer != null && map != null) {
-            for (int i = 0; i < map.getLayerCount(); i++) {
-                TileLayer tileLayer = (TileLayer) map.getLayer(i);
-                g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
-                renderer.paintTileLayer(g, tileLayer);
-            }
-
-            drawEntitiesDebug(g);
-
-            g.dispose();
-        }
-    }
-
-    private void drawTileLayers(Graphics2D g) {
-        g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
-        for (int i = 0; i < map.getLayerCount(); i++) {
-
-            try {
-                TileLayer tileLayer = (TileLayer) map.getLayer(i);
-                renderer.paintTileLayer(g, tileLayer);
-            } catch (ClassCastException cce) {
-
-            }
-        }
-    }
-
-    private void drawObjectLayers(Graphics2D g) {
-        for (int i = 0; i < map.getLayerCount(); i++) {
-            try {
-                ObjectGroup og = (ObjectGroup) map.getLayer(i);
-                renderer.paintObjectGroup(g, og);
-            } catch (ClassCastException cce) {
-
-            }
-        }
-    }
-
-    @Override
-    public void update(double delta) {
-
-    }
-
-    public void drawDebug(Graphics2D g_) {
-        //You have to create a seperate graphics context, because otherwise it wont draw
-        Graphics2D g = (Graphics2D) g_.create();
-
-        if (renderer != null && map != null) {
+        if (hasMapLoaded()) {
             drawTileLayers(g);
             drawEntities(g);
             drawObjectLayers(g);
@@ -146,10 +112,84 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         }
     }
 
+    private void drawTileLayers(Graphics2D g) {
+        g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
+
+        ArrayList<TileLayer> list = getTileLayers();
+        for (int i = 0; i < list.size(); i++) {
+            //boolean visible = list.get(i).isVisible() != null ? false : true;
+            //if (visible) {
+            //if (list.get(i).isVisible()) {
+            renderer.paintTileLayer(g, list.get(i));
+            //}
+        }
+    }
+
+    private void drawObjectLayers(Graphics2D g) {
+        ArrayList<ObjectGroup> list = getObjectLayers();
+        for (int i = 0; i < list.size(); i++) {
+            //boolean visible = list.get(i).isVisible() != null ? false : true;
+            //if (visible) {
+            renderer.paintObjectGroup(g, list.get(i));
+            //}
+        }
+    }
+
+    @Override
+    public void update(double delta) {
+        if (getSocket().connected() == false && hasMapLoaded()) {
+            invalidate();
+        }
+    }
+
+    @Override
+    public void invalidate() {
+        this.map = null;
+        this.renderer = null;
+
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).invalidate();
+        }
+
+        players.clear();
+    }
+
+    public void drawDebug(Graphics2D g_) {
+        //You have to create a seperate graphics context, because otherwise it wont draw
+        Graphics2D g = (Graphics2D) g_.create();
+
+        if (hasMapLoaded()) {
+            //drawTileLayers(g);
+            //drawEntities(g);
+            //drawObjectLayers(g);
+            //g.dispose();
+
+            g.translate(getPlayerXWithOffset(), getPlayerYWithOffset());
+
+            java.util.List<MapLayer> ml = map.getLayers();
+            for (int i = 0; i < map.getLayerCount(); i++) {
+
+                if (ml.get(i) instanceof ObjectGroup) {
+                    renderer.paintObjectGroup(g, (ObjectGroup) ml.get(i));
+                }
+
+                if (ml.get(i) instanceof TileLayer) {
+                    renderer.paintTileLayer(g, (TileLayer) ml.get(i));
+
+                    if ("root".equals(ml.get(i).getName())) {
+                        drawEntitiesDebug(g);
+                    }
+                }
+            }
+        }
+
+        g.dispose();
+    }
+
     private void drawEntitiesDebug(Graphics2D g) {
         for (int i = 0; i < players.size(); i++) {
             Entity e = players.get(i);
-            e.drawGraphics(g);
+            e.drawDebug(g);
         }
     }
 
@@ -176,7 +216,7 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
     @Override
     public void call(Object... objects) {
         try {
-            File f = new File("./res/levels");
+            File f = new File("./res/spritesheets");
             URL u = new URL("http://localhost:9000/data/levels/" + objects[0].toString());
             //URL assets = new URL("http://localhost:9000/data/assets");
 
@@ -184,6 +224,9 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
 
             tileWidth = map.getTileHeightMax();
             tileHeight = map.getTileHeightMax();
+
+            lightMap.invalidate();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -221,5 +264,67 @@ public class Screen extends SocketConnection implements Renderable, Emitter.List
         //System.out.println(og_.getName());
 
         return og_;
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        if (e.getKeyChar() == 'l') {
+            useLightMap = !useLightMap;
+
+            return;
+        }
+
+        if (e.getKeyChar() == 'i') {
+            lightMap.invalidate();
+        }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+    /* SHADOW STUFF */
+    public Point getMiddlePosition() {
+        return new Point((Game.GAME_WIDTH / 2), (Game.GAME_HEIGHT / 2));
+    }
+
+    public boolean hasMapLoaded() {
+        return map != null && renderer != null;
+    }
+
+    public Map getMap() {
+        return map;
+    }
+
+    public ArrayList<ObjectGroup> getObjectLayers() {
+        ArrayList<ObjectGroup> ogList = new ArrayList<>();
+
+        for (int i = 0; i < map.getLayerCount(); i++) {
+            MapLayer og = map.getLayer(i);
+            if (og instanceof ObjectGroup) {
+                ogList.add((ObjectGroup) og);
+            }
+        }
+
+        return ogList;
+    }
+
+    public ArrayList<TileLayer> getTileLayers() {
+        ArrayList<TileLayer> tlList = new ArrayList<>();
+
+        for (int i = 0; i < map.getLayerCount(); i++) {
+            MapLayer og = map.getLayer(i);
+            if (og instanceof TileLayer) {
+                tlList.add((TileLayer) og);
+            }
+        }
+
+        return tlList;
     }
 }

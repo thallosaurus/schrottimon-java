@@ -23,7 +23,7 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
 
     private final BufferedImage image = new BufferedImage(GAME_WIDTH, GAME_HEIGHT, BufferedImage.TYPE_INT_RGB);
 
-    public static boolean debug = true;
+    public static boolean debug = false;
     private static Game g;
 
     public static boolean inputScreen = false;
@@ -175,13 +175,14 @@ public class Game extends Canvas implements Runnable, Renderable, KeyListener {
     public void drawDebug(Graphics2D g) {
 
         g.setColor(Color.GRAY);
+        g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
         g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
 
     }
 
     @Override
     public void drawGraphics(Graphics2D g) {
-        g.setColor(Color.GRAY);
+        g.setColor(Color.BLACK);
         g.setClip(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
         g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
 

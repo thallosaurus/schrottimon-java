@@ -91,6 +91,11 @@ public class Player extends Entity implements KeyListener {
     }
 
     @Override
+    public void invalidate() {
+        onUnload();
+    }
+
+    @Override
     public void keyPressed(KeyEvent e) {
         running = e.isShiftDown();
         /*switch (e.getKeyCode()) {

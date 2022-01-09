@@ -3,9 +3,13 @@ package com.prismflux.schrottimon.gfx;
 import com.prismflux.schrottimon.net.SocketConnection;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.json.JSONString;
 import org.mapeditor.core.Map;
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -29,10 +33,29 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
 
     public String socketId = null;
 
+    public float alpha = 1.0f;
+
     protected Direction direction = Direction.DOWN;
 
     public Entity(Socket socket, String socketId, Map map, String path, int x, int y) {
         this.registerSocketListener("playermove", this);
+        this.registerSocketListener("playerupdate", new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                try {
+                    JSONObject obj = new JSONObject(objects[1].toString());
+                    boolean dimmed = obj.getBoolean("dimmed");
+                    System.out.println("Dimmed:" + dimmed);
+
+                    if (objects[0].equals(getSocketId())) {
+                        alpha = dimmed ? 0.5f : 1.0f;
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(objects[1].toString());
+            }
+        });
         this.path = path;
 
         System.out.println(x);
@@ -65,19 +88,36 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
     public void onUnload() {
         System.out.println("Unregistering Socket Events");
         unregisterSocketListener("playermove", this);
+        unregisterSocketListener("playerupdate", this);
     }
 
     @Override
     public void drawDebug(Graphics2D g) {
-        Graphics2D g_ = (Graphics2D) image.getGraphics();
-        g_.translate(32, yOffset);
-        g_.setColor(new Color(127, 127, 255, 127));
-        g_.fillRect(0, 0, image.getWidth(), image.getHeight());
+        Graphics2D g_ = (Graphics2D) g.create();
+        g_.translate(getXOffset(), getYOffset());
+        //g_.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g_.drawImage(getSpriteBuffer(), null, this.entityX * width, this.entityY * width);
+        //g_.drawImage(getAlphaChannel(), null, this.entityX * width, this.entityY * width);
         g_.dispose();
     }
 
     protected void setDirection(Direction d) {
         direction = d;
+    }
+
+    private BufferedImage getAlphaChannel() {
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g = img.createGraphics();
+        //g.setColor(Color.WHITE);
+        //g.setRenderingHint(RENDERING);
+        Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        g.setComposite(comp);
+        g.fillRect(0, 0, width, height);
+
+        g.dispose();
+
+        return img;
     }
 
     @Override
@@ -100,6 +140,13 @@ public class Entity extends SocketConnection implements Renderable, Emitter.List
             int prog = ((int) getProgress()) % subFrameDuration * 10;
             y = 1 + (prog / 100);
         }
+        //return
+        //BufferedImage img = image.getSubimage(this.direction.ordinal() * width, y * width, 32, 32);
+        //Graphics2D g = (Graphics2D) img.getGraphics();
+        //Composite comp = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+        //g.setComposite(comp);
+
+        //g.dispose();
         return image.getSubimage(this.direction.ordinal() * width, y * width, 32, 32);
     }
 

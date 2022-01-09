@@ -5,6 +5,7 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 
 import java.net.URI;
+import java.util.ArrayList;
 
 public class SocketConnection {
 
@@ -14,6 +15,8 @@ public class SocketConnection {
     //private final String PASSWORD = "pw";
 
     private final String SERVER_HOST = "http://localhost:9000";
+
+    public final ArrayList<SocketConnection> socketObjects = new ArrayList<>();
 
     public static Socket getSocket() {
         return socket;
@@ -26,13 +29,13 @@ public class SocketConnection {
     public SocketConnection() {
         //this.g = g;
 
-        IO.Options options = IO.Options.builder()
-                .build();
-
         //Properties props = new Properties();
         //props.setProperty("connect.sid", AuthenticationClient.getCookieString());
 
         if (socket == null) {
+            IO.Options options = IO.Options.builder()
+                    .build();
+
             socket = IO.socket(URI.create(SERVER_HOST), options);
             socket.connect();
 
@@ -40,6 +43,9 @@ public class SocketConnection {
                 @Override
                 public void call(Object... args) {
                     System.out.println("Connected: " + socket.connected() + ", Socket ID: " + socket.id()); // true
+                    for (int i = 0; i < socketObjects.size(); i++) {
+                        socketObjects.get(i).validate();
+                    }
                 }
             });
 
@@ -47,10 +53,20 @@ public class SocketConnection {
                 @Override
                 public void call(Object... args) {
                     System.out.println("Connected: " + socket.connected()); // false
+                    System.out.println("Lost Connection");
+                    for (int i = 0; i < socketObjects.size(); i++) {
+                        socketObjects.get(i).invalidate();
+                    }
                 }
             });
         }
+
+        socketObjects.add(this);
     }
+
+    public void invalidate() {}
+
+    public void validate() {}
 
     protected void registerSocketListener(String tag, Emitter.Listener listener) {
         socket.on(tag, listener);
